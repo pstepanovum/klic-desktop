@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { SelfUser } from "../../api/types";
 import { Avatar } from "../Avatar";
 import { Icon, type IconName } from "../../icons/Icon";
+import type { Theme } from "../../util/theme";
 import { EditProfile } from "./EditProfile";
 import { PrivacySecurity } from "./PrivacySecurity";
 import { Notifications } from "./Notifications";
@@ -34,7 +35,7 @@ const MENU: { id: PageId; icon: IconName; label: string }[] = [
   { id: "notifications", icon: "bell", label: "Notifications" },
   { id: "privacy", icon: "passcode", label: "Privacy & Security" },
   { id: "passkeys", icon: "passkey", label: "Passkeys" },
-  { id: "theme", icon: "theme", label: "Chat theme" },
+  { id: "theme", icon: "appearance", label: "Appearance" },
   { id: "data", icon: "storage", label: "Data & Storage" },
   { id: "language", icon: "language", label: "Language" },
   { id: "qr", icon: "qr", label: "QR code" },
@@ -45,11 +46,13 @@ const MENU: { id: PageId; icon: IconName; label: string }[] = [
 
 interface Props {
   self: SelfUser;
+  theme: Theme;
+  onSetTheme: (t: Theme) => void;
   onUpdated: (u: SelfUser) => void;
   onLogout: () => void;
 }
 
-export function Settings({ self, onUpdated, onLogout }: Props) {
+export function Settings({ self, theme, onSetTheme, onUpdated, onLogout }: Props) {
   const [page, setPage] = useState<PageId>("profile");
 
   function detail() {
@@ -63,7 +66,7 @@ export function Settings({ self, onUpdated, onLogout }: Props) {
       case "passkeys":
         return <Passkeys />;
       case "theme":
-        return <ChatThemePage />;
+        return <ChatThemePage theme={theme} onSetTheme={onSetTheme} />;
       case "data":
         return <DataStorage />;
       case "language":

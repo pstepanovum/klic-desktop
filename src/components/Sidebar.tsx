@@ -1,4 +1,4 @@
-import type { Conversation, SelfUser } from "../api/types";
+import type { Conversation } from "../api/types";
 import { Avatar } from "./Avatar";
 import {
   conversationTitle,
@@ -6,48 +6,18 @@ import {
   messagePreview,
   shortTime,
 } from "../util/format";
-import { Theme, themeIcon } from "../util/theme";
-
 interface Props {
-  me: SelfUser;
   conversations: Conversation[];
   activeId: string | null;
   loading: boolean;
-  theme: Theme;
   onSelect: (id: string) => void;
-  onToggleTheme: () => void;
-  onLogout: () => void;
 }
 
-export function Sidebar({
-  me,
-  conversations,
-  activeId,
-  loading,
-  theme,
-  onSelect,
-  onToggleTheme,
-  onLogout,
-}: Props) {
+export function Sidebar({ conversations, activeId, loading, onSelect }: Props) {
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
-        <div className="me">
-          <Avatar url={me.avatarUrl} name={me.displayName} size="sm" />
-          <span className="me-name">{me.displayName}</span>
-        </div>
-        <div style={{ display: "flex", gap: 2 }}>
-          <button
-            className="icon-btn"
-            title="Toggle theme"
-            onClick={onToggleTheme}
-          >
-            {themeIcon(theme)}
-          </button>
-          <button className="icon-btn" title="Sign out" onClick={onLogout}>
-            ⎋
-          </button>
-        </div>
+        <span className="sidebar-title">Chats</span>
       </div>
 
       <div className="conv-list">

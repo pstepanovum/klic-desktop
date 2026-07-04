@@ -1,4 +1,10 @@
-/* ---------- TikTok Sans (matches iOS/Android) ---------- */
+/* ---------- TikTok Sans + Bangers (matches iOS/Android) ---------- */
+@font-face {
+  font-family: "TikTok Sans";
+  src: url("/fonts/TikTokSans-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-display: swap;
+}
 @font-face {
   font-family: "TikTok Sans";
   src: url("/fonts/TikTokSans-Regular.ttf") format("truetype");
@@ -25,8 +31,20 @@
 }
 @font-face {
   font-family: "TikTok Sans";
+  src: url("/fonts/TikTokSans-ExtraBold.ttf") format("truetype");
+  font-weight: 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: "TikTok Sans";
   src: url("/fonts/TikTokSans-Black.ttf") format("truetype");
   font-weight: 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Bangers";
+  src: url("/fonts/Bangers-Regular.ttf") format("truetype");
+  font-weight: 400;
   font-display: swap;
 }
 
@@ -39,44 +57,45 @@
   --danger: #fa052e; /* KlicColor.danger */
   --read-green: #25d366; /* KlicColor.read */
 
-  /* Light scheme — grayscale surfaces (KlicColor light) */
-  --bg: #f5f5f5; /* background */
-  --bg-elevated: #ffffff; /* surface */
-  --bg-sidebar: #f5f5f5;
-  --bg-input: #f2f2f2; /* AuthStyle.fieldFill light */
-  --bg-hover: #ececec;
-  --bg-active: #e5e5e5; /* surfaceRaised light */
-  --surface-raised: #e5e5e5;
-  --bubble-in: #e5e5e5; /* surfaceRaised */
+  /* Light scheme — very light grayscale surfaces, no border strokes.
+     Separation between panes comes from subtle background steps only. */
+  --bg: #ffffff; /* content surface */
+  --bg-elevated: #ffffff;
+  --bg-sidebar: #f6f6f7; /* very light gray sidebars / rails */
+  --bg-input: #f0f0f2;
+  --bg-hover: #eeeef0;
+  --bg-active: #e8e8ec;
+  --surface-raised: #ededf0;
+  --bubble-in: #eceef1;
   --bubble-out: #ed122b; /* default Klic-red bubble */
   --bubble-out-text: #ffffff;
   --text: #111111; /* textPrimary light */
-  --text-muted: #666666; /* textMuted light */
+  --text-muted: #6b6b70; /* textMuted light */
   --text-faint: #b2b2b2; /* AuthStyle.smallText */
   --field-hint: #c7c7c7;
-  --border: #e2e2e2;
+  --border: transparent; /* no strokes */
   --sheet: #ffffff; /* AuthStyle.circleFill light */
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   color-scheme: light;
 }
 
 :root[data-theme="dark"] {
-  --bg: #0d0d0d; /* background dark */
-  --bg-elevated: #1a1a1a; /* surface dark */
-  --bg-sidebar: #0d0d0d;
-  --bg-input: #202020; /* AuthStyle.fieldFill dark */
-  --bg-hover: #1f1f1f;
-  --bg-active: #2d2d2d; /* surfaceRaised dark */
-  --surface-raised: #2d2d2d;
-  --bubble-in: #2d2d2d;
+  --bg: #0d0d0d; /* content */
+  --bg-elevated: #1a1a1a;
+  --bg-sidebar: #141416; /* very light step above content, no stroke needed */
+  --bg-input: #202022;
+  --bg-hover: #202024;
+  --bg-active: #2a2a2e;
+  --surface-raised: #2a2a2e;
+  --bubble-in: #26262a;
   --bubble-out: #ed122b;
   --bubble-out-text: #ffffff;
-  --text: #f2f2f2; /* textPrimary dark */
-  --text-muted: #878787; /* textMuted dark */
-  --text-faint: #b2b2b2;
+  --text: #f2f2f2;
+  --text-muted: #8a8a90;
+  --text-faint: #6a6a70;
   --field-hint: #6a6a6a;
-  --border: #262626;
-  --sheet: #1a1a1a; /* AuthStyle.circleFill dark = surface */
+  --border: transparent; /* no strokes */
+  --sheet: #1a1a1a;
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
   color-scheme: dark;
 }
@@ -85,19 +104,19 @@
   :root:not([data-theme="light"]) {
     --bg: #0d0d0d;
     --bg-elevated: #1a1a1a;
-    --bg-sidebar: #0d0d0d;
-    --bg-input: #202020;
-    --bg-hover: #1f1f1f;
-    --bg-active: #2d2d2d;
-    --surface-raised: #2d2d2d;
-    --bubble-in: #2d2d2d;
+    --bg-sidebar: #141416;
+    --bg-input: #202022;
+    --bg-hover: #202024;
+    --bg-active: #2a2a2e;
+    --surface-raised: #2a2a2e;
+    --bubble-in: #26262a;
     --bubble-out: #ed122b;
     --bubble-out-text: #ffffff;
     --text: #f2f2f2;
-    --text-muted: #878787;
-    --text-faint: #b2b2b2;
+    --text-muted: #8a8a90;
+    --text-faint: #6a6a70;
     --field-hint: #6a6a6a;
-    --border: #262626;
+    --border: transparent;
     --sheet: #1a1a1a;
     --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
     color-scheme: dark;
@@ -691,31 +710,52 @@ textarea {
   color: var(--text-muted);
   margin-bottom: 6px;
 }
+/* Fully rounded (pill) inputs, buttons, and dropdowns — no border strokes. */
 .text-input,
-.text-area,
 .select-input {
   width: 100%;
-  padding: 11px 13px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 999px;
   background: var(--bg-input);
   color: var(--text);
   font-size: 14px;
   outline: none;
 }
-.text-input:focus,
-.text-area:focus,
-.select-input:focus {
-  border-color: var(--accent);
-}
 .text-area {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 18px;
+  background: var(--bg-input);
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
   resize: vertical;
   min-height: 64px;
 }
+.text-input:focus,
+.text-area:focus,
+.select-input:focus {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+/* Custom dropdown: pill, filled, chevron drawn with a data-URI SVG. */
+.select-input {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 40px;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+}
+.select-input option {
+  color: #111;
+}
 .btn-primary {
-  padding: 10px 18px;
+  padding: 11px 22px;
   border: none;
-  border-radius: 10px;
+  border-radius: 999px;
   background: var(--accent);
   color: #fff;
   font-weight: 600;
@@ -728,16 +768,16 @@ textarea {
   opacity: 0.5;
 }
 .btn-secondary {
-  padding: 10px 18px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: transparent;
+  padding: 11px 22px;
+  border: none;
+  border-radius: 999px;
+  background: var(--bg-active);
   color: var(--text);
   font-weight: 600;
   font-size: 14px;
 }
 .btn-secondary:hover {
-  background: var(--bg-hover);
+  background: var(--surface-raised);
 }
 .toggle-row,
 .picker-row {
@@ -857,6 +897,109 @@ textarea {
   align-items: center;
   gap: 16px;
   margin-bottom: 24px;
+}
+.segmented {
+  display: inline-flex;
+  background: var(--bg-input);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+}
+.seg-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 8px 20px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.seg-btn.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.sidebar-title {
+  font-size: 17px;
+  font-weight: 700;
+}
+.req-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+}
+.req-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: var(--bg-active);
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.req-btn.accept {
+  background: var(--read-green);
+  color: #fff;
+}
+.call-history-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 4px;
+}
+.call-history-row .conv-name {
+  font-size: 14px;
+}
+.composer-btn {
+  width: 40px;
+  height: 40px;
+}
+.sticker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+}
+.sticker-popover {
+  position: absolute;
+  bottom: 52px;
+  left: 0;
+  z-index: 21;
+  width: 320px;
+  max-height: 340px;
+  overflow-y: auto;
+  background: var(--bg-elevated);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+  padding: 12px;
+}
+.sticker-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.sticker-cell {
+  border: none;
+  background: transparent;
+  border-radius: 12px;
+  padding: 8px;
+  cursor: pointer;
+}
+.sticker-cell:hover {
+  background: var(--bg-hover);
+}
+.sticker-cell img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+.bubble-sticker {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
 }
 
 /* ---------- Chat pane ---------- */

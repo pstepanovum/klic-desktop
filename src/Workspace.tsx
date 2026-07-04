@@ -6,6 +6,8 @@ import { realtime, type ConnectionState } from "./realtime/socket";
 import { Sidebar } from "./components/Sidebar";
 import { ChatPane } from "./components/ChatPane";
 import { Settings } from "./components/settings/Settings";
+import { Friends } from "./components/Friends";
+import { RecentCalls } from "./components/RecentCalls";
 import { Icon } from "./icons/Icon";
 import { Avatar } from "./components/Avatar";
 import { useCall } from "./calls/CallProvider";
@@ -16,7 +18,7 @@ import { displayNameFor } from "./util/format";
 import { type Theme } from "./util/theme";
 
 const PAGE_SIZE = 50;
-type Tab = "chats" | "settings";
+type Tab = "chats" | "friends" | "calls" | "settings";
 
 interface HistoryState {
   loading: boolean;
@@ -27,7 +29,7 @@ interface Props {
   session: Session;
   self: SelfUser;
   theme: Theme;
-  onToggleTheme: () => void;
+  onSetTheme: (t: Theme) => void;
   onUpdateSelf: (u: SelfUser) => void;
   onLogout: () => void;
 }
@@ -36,7 +38,7 @@ export function Workspace({
   session,
   self,
   theme,
-  onToggleTheme,
+  onSetTheme,
   onUpdateSelf,
   onLogout,
 }: Props) {
@@ -227,6 +229,18 @@ export function Workspace({
     }
   }
 
+  async function sendSticker(stickerId: string) {
+    const convId = activeIdRef.current;
+    if (!convId) return;
+    try {
+      const msg = await api.sendSticker(convId, stickerId);
+      appendMessage(msg);
+      bumpConversation(msg, true);
+    } catch {
+      /* ignore */
+    }
+  }
+
   function handleTypingChange(isTyping: boolean) {
     if (activeId) realtime.emitTyping(activeId, isTyping);
   }
@@ -264,6 +278,20 @@ export function Workspace({
           <Icon name={tab === "chats" ? "tab_chat_solid" : "tab_chat"} size={24} />
         </button>
         <button
+          className={`nav-btn ${tab === "friends" ? "active" : ""}`}
+          onClick={() => setTab("friends")}
+          title="Friends"
+        >
+          <Icon name={tab === "friends" ? "tab_user_solid" : "tab_user"} size={24} />
+        </button>
+        <button
+          className={`nav-btn ${tab === "calls" ? "active" : ""}`}
+          onClick={() => setTab("calls")}
+          title="Calls"
+        >
+          <Icon name={tab === "calls" ? "tab_call_solid" : "tab_call"} size={24} />
+        </button>
+        <button
           className={`nav-btn ${tab === "settings" ? "active" : ""}`}
           onClick={() => setTab("settings")}
           title="Settings"
@@ -272,9 +300,6 @@ export function Workspace({
             name={tab === "settings" ? "tab_settings_solid" : "tab_settings"}
             size={24}
           />
-        </button>
-        <button className="nav-btn" onClick={onToggleTheme} title="Theme">
-          <Icon name={theme === "dark" ? "moon" : "appearance"} size={22} />
         </button>
         <div className="nav-spacer" />
         <button
@@ -286,17 +311,13 @@ export function Workspace({
         </button>
       </nav>
 
-      {tab === "chats" ? (
+      {tab === "chats" && (
         <>
           <Sidebar
-            me={self}
             conversations={conversations}
             activeId={activeId}
             loading={loadingConvs}
-            theme={theme}
             onSelect={selectConversation}
-            onToggleTheme={onToggleTheme}
-            onLogout={onLogout}
           />
           {active ? (
             <ChatPane
@@ -311,6 +332,7 @@ export function Workspace({
               onSend={sendText}
               onTypingChange={handleTypingChange}
               onStartCall={startCall}
+              onSendSticker={sendSticker}
             />
           ) : (
             <div className="chat">
@@ -322,8 +344,23 @@ export function Workspace({
             </div>
           )}
         </>
-      ) : (
-        <Settings self={self} onUpdated={onUpdateSelf} onLogout={onLogout} />
+      )}
+      {tab === "friends" && <Friends />}
+      {tab === "calls" && (
+        <RecentCalls
+          onCallBack={(convId, kind, title) =>
+            call.startCall(convId, kind, title, false)
+          }
+        />
+      )}
+      {tab === "settings" && (
+        <Settings
+          self={self}
+          theme={theme}
+          onSetTheme={onSetTheme}
+          onUpdated={onUpdateSelf}
+          onLogout={onLogout}
+        />
       )}
 
       {call.phase === "incoming" && <IncomingCall />}

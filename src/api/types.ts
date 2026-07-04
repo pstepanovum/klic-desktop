@@ -126,6 +126,27 @@ export interface CallSignal {
   outcome?: string;
 }
 
+export interface CallHistoryItem {
+  id: string;
+  conversationId: string;
+  kind: CallKind;
+  outgoing: boolean;
+  outcome: string;
+  startedAt: string;
+  durationMs?: number;
+  participants: PublicUser[];
+}
+
+export interface FriendRequest {
+  requestId: string;
+  from: { id: string; username: string; displayName: string };
+}
+
+export interface Sticker {
+  id: string;
+  url: string;
+}
+
 export interface PublicUser {
   id: string;
   username: string;

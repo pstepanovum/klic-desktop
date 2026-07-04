@@ -88,7 +88,7 @@ export function CallView() {
           onClick={toggleMic}
           title={micOn ? "Mute" : "Unmute"}
         >
-          <Icon name={micOn ? "call_solid" : "slash_circle"} size={24} />
+          <Icon name={micOn ? "bold_mic" : "bold_call_muted"} size={24} />
         </button>
         {meta.kind === "VIDEO" && (
           <button
@@ -96,11 +96,11 @@ export function CallView() {
             onClick={toggleCam}
             title={camOn ? "Stop video" : "Start video"}
           >
-            <Icon name="video_solid" size={24} />
+            <Icon name={camOn ? "bold_video" : "bold_camera_slash"} size={24} />
           </button>
         )}
         <button className="call-ctl hangup" onClick={hangup} title="Hang up">
-          <Icon name="call_solid" size={24} />
+          <Icon name="bold_call_slash" size={24} />
         </button>
       </div>
     </div>

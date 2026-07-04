@@ -6,16 +6,45 @@ import {
   loadBubbleColor,
   applyBubbleColor,
 } from "../../util/chatTheme";
+import type { Theme } from "../../util/theme";
 
-// ---- Chat theme (local) ----
-export function ChatThemePage() {
+const THEME_MODES: { id: Theme; label: string }[] = [
+  { id: "light", label: "Light" },
+  { id: "dark", label: "Dark" },
+  { id: "system", label: "System" },
+];
+
+// ---- Appearance: theme mode + bubble color (local) ----
+export function ChatThemePage({
+  theme,
+  onSetTheme,
+}: {
+  theme: Theme;
+  onSetTheme: (t: Theme) => void;
+}) {
   const [color, setColor] = useState(loadBubbleColor());
   return (
     <div className="settings-detail-inner">
       <PageHeader
-        title="Chat theme"
-        subtitle="Pick the color of your sent-message bubbles. Saved on this device."
+        title="Appearance"
+        subtitle="Theme and chat colors. Saved on this device."
       />
+      <Field label="Theme">
+        <div className="segmented">
+          {THEME_MODES.map((m) => (
+            <button
+              key={m.id}
+              className={`seg-btn ${theme === m.id ? "active" : ""}`}
+              onClick={() => onSetTheme(m.id)}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+      </Field>
+      <div className="field-group">
+        <label>Sent-message bubble</label>
+      </div>
       <div className="msg-row out" style={{ marginBottom: 20 }}>
         <div className="bubble">
           <div className="bubble-text">Here's how your messages will look.</div>

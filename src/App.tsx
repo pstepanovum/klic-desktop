@@ -13,7 +13,7 @@ import { AuthScreen } from "./components/AuthScreen";
 import { Titlebar } from "./components/Titlebar";
 import { Workspace } from "./Workspace";
 import { CallProvider } from "./calls/CallProvider";
-import { loadTheme, applyTheme, nextTheme, type Theme } from "./util/theme";
+import { loadTheme, applyTheme, type Theme } from "./util/theme";
 import { applyAuthWindow, applyAppWindow } from "./util/window";
 
 export default function App() {
@@ -70,7 +70,7 @@ export default function App() {
               session={session}
               self={self}
               theme={theme}
-              onToggleTheme={() => setTheme((t) => nextTheme(t))}
+              onSetTheme={setTheme}
               onUpdateSelf={updateSelf}
               onLogout={doLogout}
             />

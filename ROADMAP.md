@@ -1,38 +1,49 @@
 # Roadmap
 
-The first release (v0.6.1) is a clean, working slice: auth, conversations,
-chat with text + attachment rendering, and realtime. The items below are
-deliberately out of scope for that slice and are planned next.
+## Done
 
-## Deferred (out of the first slice)
+- **v0.6.1** — auth, conversations sidebar, chat with text + attachment
+  rendering, realtime (messages/typing/read), light/dark theme, Klic branding.
+- **v0.6.2** — voice/video/**group** calls (livekit-client), the full settings
+  surface, the ic_klic icon set, a fixed-size auth window, a custom native
+  titlebar, and a native macOS menu with an About panel.
 
-- **Voice / video calls** — the backend supports LiveKit calls and `call:*`
-  socket events; the desktop client does not join or place calls yet.
+## Deferred / next
+
 - **Search** — global message / people search (`/search`).
-- **Account recovery** — password reset, email verification flows, passkeys.
 - **Media viewer** — full-screen image/video lightbox with zoom; today images
   open in the system browser and files download.
-- **Push / notifications** — desktop OS notifications for new messages while the
-  window is unfocused or in the background.
+- **Push / notifications** — desktop OS notifications for new messages / calls
+  while the window is unfocused or backgrounded.
 - **Group management** — creating groups, editing title/avatar, adding or
-  removing members, roles.
+  removing members, roles. (Group *calls* are supported; group *admin* is not.)
+- **Sending attachments** — the 3-step upload flow (`POST /me/avatar-upload`
+  style presign → `PUT uploadUrl` → reference `key`) is wired for avatars but
+  the message composer sends text only; incoming attachments render.
+- **Message actions** — reactions, replies, edit, delete, pin, star-from-chat.
+  Wire data is typed and partially rendered (deleted state); no action UI yet.
+- **Presence** — `presence:update` is received but online/last-seen is not yet
+  surfaced in the chat UI.
+- **Screen share** — livekit supports it; not surfaced in the call controls.
+- **Passkey registration on desktop** — the Passkeys page lists and removes
+  existing passkeys; adding a new one (WebAuthn create ceremony) is deferred.
+- **Recovery via Google / password reset** — recovery email + change-password
+  are wired; Google-email linking and Firebase-hosted password reset are not.
+- **Account deletion, contact sync** — endpoints exist; no desktop UI yet.
+- **Localization** — the Language page persists a choice locally; the UI ships
+  in English only for now.
+- **Optimistic send + toasts** — messages append on server ack; no optimistic
+  pending state or retry UI.
+- **E2EE** — the backend has a disabled `CIPHERTEXT` path; not implemented (and
+  the in-app Encryption copy is deliberately honest about transit/at-rest only).
+- **Auto-updater** — self-update / release channel wiring.
 
-## Additionally deferred during implementation
+## Owner action items (OS-level)
 
-- **Sending attachments** — the 3-step upload flow (`POST /uploads` →
-  `PUT uploadUrl` → reference `key` in the message) is understood but the
-  composer currently sends text only; incoming attachments are rendered.
-- **Message actions** — reactions, replies, edit, delete, pin, stars. The wire
-  data (`reactions`, `replyTo`, `editedAt`, `pinnedAt`) is typed and partially
-  rendered (deleted state), but no UI to perform these actions yet.
-- **Presence** — `presence:update` is received; online/last-seen is not yet
-  surfaced in the UI.
-- **Optimistic send + failure toasts** — messages are appended on server
-  acknowledgement; there is no optimistic pending state or send-failure retry UI.
-- **Stickers, voice notes, video notes** — recognized in previews; no dedicated
-  playback/record UI.
-- **E2EE** — the backend has a `CIPHERTEXT` message path; the desktop client
-  does not implement the encryption layer.
-- **Auto-updater** — self-update / release channel wiring for the desktop app.
-- **Settings** — profile editing (display name, avatar, about), privacy
-  toggles, and read-receipt preferences.
+- **macOS camera/microphone** — usage strings ship in
+  `src-tauri/Info.plist`; the first call triggers the system permission
+  prompts. For a notarized/hardened-runtime build, add the
+  `com.apple.security.device.camera` and `.audio-input` entitlements.
+- Live multi-peer call testing requires a **second signed-in client** (a phone
+  or a second desktop instance); a single client can start/ring but needs a
+  peer to reach the connected state.

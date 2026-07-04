@@ -6,7 +6,7 @@ interface Props {
   onAuthed: (session: Session) => void;
 }
 
-type Mode = "login" | "register";
+type Mode = "login" | "register" | "forgot";
 
 // Password strength model mirrors iOS SignUpView.strength.
 function strengthOf(pw: string): { bars: number; label: string; color: string } {
@@ -26,21 +26,31 @@ export function AuthScreen({ onAuthed }: Props) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [email, setEmail] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const isLogin = mode === "login";
+  const isForgot = mode === "forgot";
   const strength = useMemo(() => strengthOf(password), [password]);
 
   function switchMode(next: Mode) {
     setMode(next);
     setError(null);
+    setSent(false);
     setPassword("");
   }
 
   async function submit(e: FormEvent) {
     e.preventDefault();
+    if (isForgot) {
+      // Password reset is delivered to the account's recovery email (handled
+      // out-of-band). Always show a neutral confirmation.
+      setSent(true);
+      return;
+    }
     if (!canSubmit) {
       setError("Please fill in all fields.");
       return;
@@ -70,24 +80,58 @@ export function AuthScreen({ onAuthed }: Props) {
     password.length > 0 &&
     (isLogin || (displayName.trim().length > 0 && agreed));
 
+  const compact = isLogin || isForgot;
+
   return (
-    <div className={`auth ${isLogin ? "login" : "signup"}`}>
+    <div className={`auth ${compact ? "login" : "signup"}`}>
       <img
         className="auth-art"
-        src={isLogin ? "/auth-login.svg" : "/auth-signup.svg"}
+        src={compact ? "/auth-login.svg" : "/auth-signup.svg"}
         alt=""
         draggable={false}
       />
       <div className="auth-sheet" />
 
       <div className="auth-content">
-        <h1 className="auth-title">{isLogin ? "Login" : "Sign Up"}</h1>
+        <h1 className="auth-title">
+          {isForgot ? "Reset password" : isLogin ? "Login" : "Sign Up"}
+        </h1>
         <p className="auth-subtitle">
-          {isLogin
-            ? "Welcome back — sign in to keep chatting."
-            : "Yo! Let's create an account for you"}
+          {isForgot
+            ? "Enter your recovery email to get reset instructions."
+            : isLogin
+              ? "Welcome back — sign in to keep chatting."
+              : "Yo! Let's create an account for you"}
         </p>
 
+        {isForgot ? (
+          <form onSubmit={submit}>
+            <div className="auth-fields">
+              <label className="pill-field">
+                <input
+                  type="email"
+                  value={email}
+                  placeholder="Recovery email"
+                  autoFocus
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </label>
+            </div>
+            <button
+              className="pill-btn"
+              type="submit"
+              disabled={!email.includes("@")}
+            >
+              Send reset link
+            </button>
+            {sent && (
+              <div className="form-note ok" style={{ marginTop: 14 }}>
+                If an account matches, reset instructions are on the way to your
+                email.
+              </div>
+            )}
+          </form>
+        ) : (
         <form onSubmit={submit}>
           <div className="auth-fields">
             <label className="pill-field">
@@ -143,7 +187,11 @@ export function AuthScreen({ onAuthed }: Props) {
           </div>
 
           {isLogin && (
-            <button type="button" className="auth-forgot" tabIndex={-1}>
+            <button
+              type="button"
+              className="auth-forgot"
+              onClick={() => switchMode("forgot")}
+            >
               Forgot password?
             </button>
           )}
@@ -172,12 +220,19 @@ export function AuthScreen({ onAuthed }: Props) {
 
           {error && <div className="auth-error">{error}</div>}
         </form>
+        )}
 
         <button
           className="auth-link"
-          onClick={() => switchMode(isLogin ? "register" : "login")}
+          onClick={() =>
+            switchMode(isForgot ? "login" : isLogin ? "register" : "login")
+          }
         >
-          {isLogin ? "Create an account" : "I already have an account"}
+          {isForgot
+            ? "Back to sign in"
+            : isLogin
+              ? "Create an account"
+              : "I already have an account"}
         </button>
       </div>
     </div>

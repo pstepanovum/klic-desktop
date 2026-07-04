@@ -12,12 +12,6 @@ interface Props {
 export function Titlebar({ variant = "app", right }: Props) {
   return (
     <div className={`titlebar tb-${variant}`} data-tauri-drag-region>
-      <img
-        className="titlebar-logo"
-        src="/wordmark-red.svg"
-        alt="Klic"
-        draggable={false}
-      />
       <div className="titlebar-spacer" data-tauri-drag-region />
       {right && <div className="titlebar-right">{right}</div>}
     </div>

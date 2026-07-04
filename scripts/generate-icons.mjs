@@ -52,13 +52,30 @@ function convert(xml) {
   return { vw, vh, paths };
 }
 
+// Port the Klic UI set (ic_klic_*) plus the bold/line glyph sets used for call
+// controls and actions (ic_bold_* -> bold_*, ic_line_* -> line_*).
+const PREFIXES = [
+  ["ic_klic_", ""],
+  ["ic_bold_", "bold_"],
+  ["ic_line_", "line_"],
+];
+
 const files = readdirSync(SRC)
-  .filter((f) => f.startsWith("ic_klic_") && f.endsWith(".xml"))
+  .filter(
+    (f) =>
+      f.endsWith(".xml") &&
+      PREFIXES.some(([p]) => f.startsWith(p)),
+  )
   .sort();
 
+const seen = new Set();
 const entries = [];
 for (const file of files) {
-  const name = file.replace(/^ic_klic_/, "").replace(/\.xml$/, "");
+  const pref = PREFIXES.find(([p]) => file.startsWith(p));
+  const name =
+    pref[1] + file.replace(pref[0], "").replace(/\.xml$/, "");
+  if (seen.has(name)) continue;
+  seen.add(name);
   const { vw, vh, paths } = convert(readFileSync(join(SRC, file), "utf8"));
   entries.push({ name, vw, vh, paths });
 }

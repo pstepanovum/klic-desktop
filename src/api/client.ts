@@ -10,15 +10,19 @@ import type {
   ActiveCall,
   AuthResponse,
   BlockedEntry,
+  CallHistoryItem,
   CallStart,
   CallToken,
   Conversation,
   EmailStatus,
+  FriendRequest,
   Message,
   NotificationPrefs,
   Passkey,
   ProfilePatch,
+  PublicUser,
   SelfUser,
+  Sticker,
   StarredPage,
 } from "./types";
 
@@ -247,6 +251,40 @@ export const api = {
   },
   activeCall(conversationId: string) {
     return request<ActiveCall>(`/conversations/${conversationId}/active-call`);
+  },
+
+  // ---- Friends ----
+  friends() {
+    return request<PublicUser[]>("/friends");
+  },
+  friendRequests() {
+    return request<FriendRequest[]>("/friends/requests");
+  },
+  acceptRequest(id: string) {
+    return request<void>(`/friends/requests/${id}/accept`, { method: "POST" });
+  },
+  declineRequest(id: string) {
+    return request<void>(`/friends/requests/${id}/decline`, { method: "POST" });
+  },
+  unfriend(userId: string) {
+    return request<void>(`/friends/${userId}`, { method: "DELETE" });
+  },
+  block(userId: string) {
+    return request<void>("/blocks", { method: "POST", body: { userId } });
+  },
+  callHistory(limit = 40) {
+    return request<CallHistoryItem[]>("/calls", { query: { limit } });
+  },
+
+  // ---- Stickers ----
+  stickers() {
+    return request<{ stickers: Sticker[] }>("/stickers");
+  },
+  sendSticker(conversationId: string, stickerId: string) {
+    return request<Message>(`/conversations/${conversationId}/messages`, {
+      method: "POST",
+      body: { stickerId },
+    });
   },
 
   // ---- Conversations ----

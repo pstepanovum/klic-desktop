@@ -9,6 +9,7 @@ import {
   humanSize,
 } from "../util/format";
 import { Icon } from "../icons/Icon";
+import { StickerPicker } from "./StickerPicker";
 
 interface Props {
   me: SelfUser;
@@ -21,6 +22,7 @@ interface Props {
   onSend: (text: string) => void;
   onTypingChange: (isTyping: boolean) => void;
   onStartCall?: (kind: "AUDIO" | "VIDEO") => void;
+  onSendSticker?: (stickerId: string) => void;
 }
 
 function Tick({ status }: { status?: Message["status"] }) {
@@ -64,8 +66,10 @@ export function ChatPane({
   onSend,
   onTypingChange,
   onStartCall,
+  onSendSticker,
 }: Props) {
   const [draft, setDraft] = useState("");
+  const [showStickers, setShowStickers] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const typingTimer = useRef<number | null>(null);
@@ -235,6 +239,23 @@ export function ChatPane({
       </div>
 
       <div className="composer">
+        {onSendSticker && (
+          <div style={{ position: "relative" }}>
+            <button
+              className="icon-btn composer-btn"
+              title="Stickers"
+              onClick={() => setShowStickers((v) => !v)}
+            >
+              <Icon name="media" size={22} />
+            </button>
+            {showStickers && (
+              <StickerPicker
+                onPick={(id) => onSendSticker(id)}
+                onClose={() => setShowStickers(false)}
+              />
+            )}
+          </div>
+        )}
         <textarea
           value={draft}
           placeholder="Write a message…"
