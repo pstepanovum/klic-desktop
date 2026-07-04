@@ -3,47 +3,50 @@
 ## Done
 
 - **v0.6.1** — auth, conversations sidebar, chat with text + attachment
-  rendering, realtime (messages/typing/read), light/dark theme, Klic branding.
-- **v0.6.2** — voice/video/**group** calls (livekit-client), the full settings
-  surface, the ic_klic icon set, a fixed-size auth window, a custom native
-  titlebar, and a native macOS menu with an About panel.
+  rendering, realtime, light/dark theme, Klic branding.
+- **v0.6.2** — voice/video/**group** calls (livekit-client) with active-speaker
+  grid + recent-calls history; the full settings surface; **Friends** (list,
+  requests, profile detail); **stickers**; message **reactions / reply / copy /
+  star** context menu; auto-linked URLs; the Klic icon set (352 glyphs);
+  fixed-size auth window + forgot-password screen; custom titlebar; native macOS
+  menu (About / Pavel Stepanov); a squircle app icon; TikTok Sans + Bangers;
+  grayscale stroke-free UI with fully rounded controls.
 
 ## Deferred / next
 
+- **Sending pictures & files** — the upload flow is understood
+  (`POST /uploads {conversationId,kind,contentType,byteSize}` → `PUT uploadUrl`
+  → send message with `attachments:[{key,kind}]`). Incoming media of every kind
+  renders (image/video/voice/file); the composer's attach button is not wired
+  yet.
+- **Screen share** — livekit supports `setScreenShareEnabled`, but macOS
+  WKWebView `getDisplayMedia` needs a native display-capture permission handler
+  (see the server/host note below). Deferred until that's in place.
+- **Chat theme patterns & gradients** — the bubble-color palette and Light/Dark/
+  System theme are done. The 10 background patterns + gradient presets
+  (`klic-assets/chat-them/*.svg`) and the group theme (`PATCH /conversations/:id`)
+  are not yet implemented.
+- **Conversation info panel** — shared Media / Files / Links tabs
+  (`GET /conversations/:id/attachments`).
+- **Message edit / delete / pin** — reactions, reply, star are wired; edit,
+  delete, and pin are not.
 - **Search** — global message / people search (`/search`).
-- **Media viewer** — full-screen image/video lightbox with zoom; today images
-  open in the system browser and files download.
-- **Push / notifications** — desktop OS notifications for new messages / calls
-  while the window is unfocused or backgrounded.
-- **Group management** — creating groups, editing title/avatar, adding or
-  removing members, roles. (Group *calls* are supported; group *admin* is not.)
-- **Sending attachments** — the 3-step upload flow (`POST /me/avatar-upload`
-  style presign → `PUT uploadUrl` → reference `key`) is wired for avatars but
-  the message composer sends text only; incoming attachments render.
-- **Message actions** — reactions, replies, edit, delete, pin, star-from-chat.
-  Wire data is typed and partially rendered (deleted state); no action UI yet.
-- **Presence** — `presence:update` is received but online/last-seen is not yet
-  surfaced in the chat UI.
-- **Screen share** — livekit supports it; not surfaced in the call controls.
-- **Passkey registration on desktop** — the Passkeys page lists and removes
-  existing passkeys; adding a new one (WebAuthn create ceremony) is deferred.
-- **Recovery via Google / password reset** — recovery email + change-password
-  are wired; Google-email linking and Firebase-hosted password reset are not.
-- **Account deletion, contact sync** — endpoints exist; no desktop UI yet.
-- **Localization** — the Language page persists a choice locally; the UI ships
-  in English only for now.
-- **Optimistic send + toasts** — messages append on server ack; no optimistic
-  pending state or retry UI.
-- **E2EE** — the backend has a disabled `CIPHERTEXT` path; not implemented (and
-  the in-app Encryption copy is deliberately honest about transit/at-rest only).
-- **Auto-updater** — self-update / release channel wiring.
+- **Media viewer** — full-screen image/video lightbox with zoom.
+- **Push / notifications** — desktop OS notifications for messages / calls.
+- **Group management** — create groups, edit title/avatar, members, roles.
+- **Passkey registration on desktop** — list + remove are wired; the WebAuthn
+  create ceremony is deferred.
+- **Presence** — `presence:update` received; not surfaced in the UI.
+- **Localization** — the Language page persists a choice locally; UI is English.
+- **Optimistic send + toasts**, **auto-updater**, **E2EE** (server ciphertext
+  path is disabled; the Encryption page states transit/at-rest honestly).
 
-## Owner action items (OS-level)
+## Owner action items (OS / server / host)
 
-- **macOS camera/microphone** — usage strings ship in
-  `src-tauri/Info.plist`; the first call triggers the system permission
-  prompts. For a notarized/hardened-runtime build, add the
-  `com.apple.security.device.camera` and `.audio-input` entitlements.
-- Live multi-peer call testing requires a **second signed-in client** (a phone
-  or a second desktop instance); a single client can start/ring but needs a
-  peer to reach the connected state.
+- **macOS camera/microphone** — usage strings ship in `src-tauri/Info.plist`;
+  the first call triggers the system prompts. A notarized/hardened build should
+  add the `com.apple.security.device.camera` / `.audio-input` entitlements.
+- **Screen share** needs the host to grant WKWebView display-capture permission
+  (macOS 13+, `SCContentSharingPicker`) — flagged for the desktop shell.
+- **Live multi-peer call testing** requires a second signed-in client (phone or
+  a second desktop instance).
