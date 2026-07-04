@@ -2,7 +2,7 @@
 // resizable two-pane app size. No-ops gracefully outside Tauri (plain browser).
 import { getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
 
-const AUTH = { w: 440, h: 720 };
+const AUTH = { w: 440, h: 800 };
 const APP = { w: 1180, h: 760 };
 const APP_MIN = { w: 720, h: 520 };
 

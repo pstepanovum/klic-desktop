@@ -14,9 +14,9 @@
       {
         "title": "Klic",
         "width": 440,
-        "height": 720,
+        "height": 800,
         "minWidth": 440,
-        "minHeight": 720,
+        "minHeight": 800,
         "resizable": false,
         "center": true,
         "fullscreen": false,
