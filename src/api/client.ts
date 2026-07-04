@@ -311,4 +311,16 @@ export const api = {
   starMessage(messageId: string) {
     return request<void>(`/messages/${messageId}/star`, { method: "POST" });
   },
+  deleteMessage(conversationId: string, messageId: string) {
+    return request<void>(
+      `/conversations/${conversationId}/messages/${messageId}`,
+      { method: "DELETE" },
+    );
+  },
+  pinMessage(conversationId: string, messageId: string) {
+    return request<void>(
+      `/conversations/${conversationId}/messages/${messageId}/pin`,
+      { method: "POST" },
+    );
+  },
 };

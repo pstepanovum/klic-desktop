@@ -144,7 +144,7 @@ export function Friends() {
             </div>
           </div>
         ) : (
-          <div className="chat-empty">Select a friend to see their profile</div>
+          <div className="detail-empty">Select a friend to see their profile</div>
         )}
       </div>
     </div>

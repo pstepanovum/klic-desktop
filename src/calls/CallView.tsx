@@ -88,15 +88,13 @@ export function CallView() {
         >
           <Icon name={micOn ? "bold_mic" : "bold_call_muted"} size={24} />
         </button>
-        {meta.kind === "VIDEO" && (
-          <button
-            className={`call-ctl ${camOn ? "" : "off"}`}
-            onClick={toggleCam}
-            title={camOn ? "Stop video" : "Start video"}
-          >
-            <Icon name={camOn ? "bold_video" : "bold_camera_slash"} size={24} />
-          </button>
-        )}
+        <button
+          className={`call-ctl ${camOn ? "" : "off"}`}
+          onClick={toggleCam}
+          title={camOn ? "Stop video" : "Start video"}
+        >
+          <Icon name={camOn ? "bold_video" : "bold_camera_slash"} size={24} />
+        </button>
         <button className="call-ctl hangup" onClick={hangup} title="Hang up">
           <Icon name="bold_call_slash" size={24} />
         </button>

@@ -29,6 +29,7 @@ interface Props {
   session: Session;
   self: SelfUser;
   theme: Theme;
+  search: string;
   onSetTheme: (t: Theme) => void;
   onUpdateSelf: (u: SelfUser) => void;
   onLogout: () => void;
@@ -38,6 +39,7 @@ export function Workspace({
   session,
   self,
   theme,
+  search,
   onSetTheme,
   onUpdateSelf,
   onLogout,
@@ -253,6 +255,30 @@ export function Workspace({
     api.starMessage(messageId).catch(() => {});
   }
 
+  function pinMessage(messageId: string) {
+    const convId = activeIdRef.current;
+    if (convId) api.pinMessage(convId, messageId).catch(() => {});
+  }
+
+  function deleteMessage(messageId: string) {
+    const convId = activeIdRef.current;
+    if (!convId) return;
+    api.deleteMessage(convId, messageId).catch(() => {});
+    // Optimistically mark deleted.
+    setMessages((prev) => {
+      const list = prev[convId];
+      if (!list) return prev;
+      return {
+        ...prev,
+        [convId]: list.map((m) =>
+          m.id === messageId
+            ? { ...m, deletedAt: new Date().toISOString(), body: "" }
+            : m,
+        ),
+      };
+    });
+  }
+
   async function sendSticker(stickerId: string) {
     const convId = activeIdRef.current;
     if (!convId) return;
@@ -269,6 +295,12 @@ export function Workspace({
     if (activeId) realtime.emitTyping(activeId, isTyping);
   }
 
+  const q = search.trim().toLowerCase();
+  const visibleConversations = q
+    ? conversations.filter((c) =>
+        conversationTitle(c).toLowerCase().includes(q),
+      )
+    : conversations;
   const active = conversations.find((c) => c.id === activeId) ?? null;
   const activeMessages = activeId ? messages[activeId] ?? [] : [];
   const activeHistory = activeId
@@ -338,7 +370,7 @@ export function Workspace({
       {tab === "chats" && (
         <>
           <Sidebar
-            conversations={conversations}
+            conversations={visibleConversations}
             activeId={activeId}
             loading={loadingConvs}
             onSelect={selectConversation}
@@ -359,6 +391,8 @@ export function Workspace({
               onSendSticker={sendSticker}
               onReact={reactMessage}
               onStar={starMessage}
+              onPin={pinMessage}
+              onDelete={deleteMessage}
             />
           ) : (
             <div className="chat">

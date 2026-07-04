@@ -25,6 +25,8 @@ interface Props {
   onSendSticker?: (stickerId: string) => void;
   onReact?: (messageId: string, emoji: string) => void;
   onStar?: (messageId: string) => void;
+  onPin?: (messageId: string) => void;
+  onDelete?: (messageId: string) => void;
 }
 
 const QUICK_EMOJI = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
@@ -53,7 +55,13 @@ function Tick({ status }: { status?: Message["status"] }) {
   );
 }
 
-function AttachmentView({ att }: { att: Attachment }) {
+function AttachmentView({
+  att,
+  onOpen,
+}: {
+  att: Attachment;
+  onOpen: (url: string) => void;
+}) {
   if (att.kind === "IMAGE") {
     return (
       <img
@@ -61,7 +69,7 @@ function AttachmentView({ att }: { att: Attachment }) {
         src={att.url}
         alt={att.fileName ?? "image"}
         loading="lazy"
-        onClick={() => att.url && window.open(att.url, "_blank")}
+        onClick={() => att.url && onOpen(att.url)}
       />
     );
   }
@@ -103,6 +111,8 @@ export function ChatPane({
   onSendSticker,
   onReact,
   onStar,
+  onPin,
+  onDelete,
 }: Props) {
   const [draft, setDraft] = useState("");
   const [showStickers, setShowStickers] = useState(false);
@@ -110,6 +120,7 @@ export function ChatPane({
     null,
   );
   const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const [viewer, setViewer] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const typingTimer = useRef<number | null>(null);
@@ -270,7 +281,7 @@ export function ChatPane({
                   </div>
                 )}
                 {m.attachments.map((att) => (
-                  <AttachmentView key={att.id} att={att} />
+                  <AttachmentView key={att.id} att={att} onOpen={setViewer} />
                 ))}
                 {m.stickerUrl && (
                   <img
@@ -309,6 +320,15 @@ export function ChatPane({
         })}
         <div ref={bottomRef} />
       </div>
+
+      {viewer && (
+        <div className="image-viewer" onClick={() => setViewer(null)}>
+          <img src={viewer} alt="preview" />
+          <button className="image-viewer-close" onClick={() => setViewer(null)}>
+            <Icon name="close" size={22} />
+          </button>
+        </div>
+      )}
 
       {menu && (
         <>
@@ -362,6 +382,28 @@ export function ChatPane({
                 }}
               >
                 Star
+              </button>
+            )}
+            {onPin && (
+              <button
+                className="ctx-item"
+                onClick={() => {
+                  onPin(menu.m.id);
+                  setMenu(null);
+                }}
+              >
+                Pin
+              </button>
+            )}
+            {onDelete && menu.m.senderId === me.id && (
+              <button
+                className="ctx-item danger"
+                onClick={() => {
+                  onDelete(menu.m.id);
+                  setMenu(null);
+                }}
+              >
+                Delete
               </button>
             )}
           </div>

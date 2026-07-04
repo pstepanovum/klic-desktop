@@ -7,7 +7,7 @@ const KEY = "klic.bubbleColor";
 // The curated own-bubble palette shared with the mobile apps (readable with
 // white text).
 export const BUBBLE_COLORS: { id: string; color: string; name: string }[] = [
-  { id: "klic", color: "#ed122b", name: "Klic Red" },
+  { id: "klic", color: "#d90429", name: "Klic Red" },
   { id: "ocean", color: "#1565c0", name: "Ocean" },
   { id: "forest", color: "#2e7d32", name: "Forest" },
   { id: "violet", color: "#6a3dd8", name: "Violet" },

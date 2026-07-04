@@ -15,7 +15,7 @@ export function Avatar({ url, name, size = "md" }: Props) {
   if (url && !failed) {
     return (
       <img
-        className={cls}
+        className={`${cls} avatar-img`}
         src={url}
         alt={name}
         draggable={false}
@@ -23,5 +23,5 @@ export function Avatar({ url, name, size = "md" }: Props) {
       />
     );
   }
-  return <span className={cls}>{initials(name)}</span>;
+  return <span className={`${cls} avatar-initials`}>{initials(name)}</span>;
 }

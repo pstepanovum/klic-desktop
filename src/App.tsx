@@ -13,7 +13,7 @@ import { AuthScreen } from "./components/AuthScreen";
 import { Titlebar } from "./components/Titlebar";
 import { Workspace } from "./Workspace";
 import { CallProvider } from "./calls/CallProvider";
-import { loadTheme, applyTheme, type Theme } from "./util/theme";
+import { loadTheme, applyTheme, nextTheme, type Theme } from "./util/theme";
 import { applyAuthWindow, applyAppWindow } from "./util/window";
 
 export default function App() {
@@ -22,6 +22,7 @@ export default function App() {
     () => loadSession()?.user ?? null,
   );
   const [theme, setTheme] = useState<Theme>(() => loadTheme());
+  const [search, setSearch] = useState("");
   const authed = !!session && !!self;
   const prevAuthed = useRef<boolean | null>(null);
 
@@ -62,7 +63,13 @@ export default function App() {
 
   return (
     <div className="root-shell">
-      <Titlebar variant={authed ? "app" : "auth"} />
+      <Titlebar
+        variant={authed ? "app" : "auth"}
+        search={search}
+        onSearch={authed ? setSearch : undefined}
+        theme={theme}
+        onToggleTheme={authed ? () => setTheme((t) => nextTheme(t)) : undefined}
+      />
       <div className="root-body">
         {authed && session && self ? (
           <CallProvider selfId={self.id}>
@@ -70,6 +77,7 @@ export default function App() {
               session={session}
               self={self}
               theme={theme}
+              search={search}
               onSetTheme={setTheme}
               onUpdateSelf={updateSelf}
               onLogout={doLogout}

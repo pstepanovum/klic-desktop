@@ -50,8 +50,8 @@
 
 :root {
   /* Klic brand — same in both schemes (KlicColor.swift) */
-  --accent: #ed122b; /* KlicColor.primary */
-  --accent-hover: #c80e24;
+  --accent: #d90429; /* KlicColor.primary */
+  --accent-hover: #b30320;
   --cta-red: #d90429; /* AuthStyle.ctaRed */
   --accent-contrast: #ffffff;
   --danger: #fa052e; /* KlicColor.danger */
@@ -67,7 +67,7 @@
   --bg-active: #e8e8ec;
   --surface-raised: #ededf0;
   --bubble-in: #eceef1;
-  --bubble-out: #ed122b; /* default Klic-red bubble */
+  --bubble-out: #d90429; /* default Klic-red bubble */
   --bubble-out-text: #ffffff;
   --text: #111111; /* textPrimary light */
   --text-muted: #6b6b70; /* textMuted light */
@@ -88,7 +88,7 @@
   --bg-active: #2a2a2e;
   --surface-raised: #2a2a2e;
   --bubble-in: #26262a;
-  --bubble-out: #ed122b;
+  --bubble-out: #d90429;
   --bubble-out-text: #ffffff;
   --text: #f2f2f2;
   --text-muted: #8a8a90;
@@ -110,7 +110,7 @@
     --bg-active: #2a2a2e;
     --surface-raised: #2a2a2e;
     --bubble-in: #26262a;
-    --bubble-out: #ed122b;
+    --bubble-out: #d90429;
     --bubble-out-text: #ffffff;
     --text: #f2f2f2;
     --text-muted: #8a8a90;
@@ -139,14 +139,15 @@
   overflow: hidden;
 }
 .titlebar {
-  height: 40px;
+  position: relative;
+  height: 48px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   /* Reserve room for the macOS traffic lights on the left. */
-  padding-left: 78px;
-  padding-right: 10px;
-  gap: 10px;
+  padding-left: 82px;
+  padding-right: 12px;
+  gap: 8px;
   user-select: none;
   -webkit-user-select: none;
 }
@@ -168,6 +169,48 @@
   height: 17px;
   width: auto;
   pointer-events: none;
+}
+.titlebar-theme {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.titlebar-theme:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+.titlebar-search {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-input);
+  border-radius: 999px;
+  padding: 0 15px;
+  height: 38px;
+  width: min(380px, 44vw);
+  color: var(--text-muted);
+}
+.titlebar-search input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  color: var(--text);
+  font-size: 13px;
+}
+.titlebar-search input::placeholder {
+  color: var(--field-hint);
 }
 .titlebar-spacer {
   flex: 1;
@@ -489,7 +532,7 @@ textarea {
   border-radius: 50%;
   flex-shrink: 0;
   object-fit: cover;
-  background: var(--accent);
+  background: var(--surface-raised);
   color: #fff;
   display: inline-flex;
   align-items: center;
@@ -497,6 +540,17 @@ textarea {
   font-weight: 600;
   font-size: 16px;
   overflow: hidden;
+  border: none;
+}
+/* Image avatars fill edge-to-edge with no colored background bleeding through. */
+.avatar-img {
+  object-fit: cover;
+  background: var(--surface-raised);
+}
+/* Only the initials fallback uses the brand fill. */
+.avatar-initials {
+  background: var(--accent);
+  color: #fff;
 }
 .avatar.sm {
   width: 32px;
@@ -1017,6 +1071,15 @@ textarea {
   color: var(--text-faint);
   font-size: 14px;
 }
+/* Centered empty state for detail panes whose parent isn't a flex column. */
+.detail-empty {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-faint);
+  font-size: 14px;
+}
 .chat-header {
   display: flex;
   align-items: center;
@@ -1139,6 +1202,37 @@ textarea {
 .reaction.mine {
   background: rgba(255, 255, 255, 0.35);
 }
+.image-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  cursor: zoom-out;
+}
+.image-viewer img {
+  max-width: 92%;
+  max-height: 92%;
+  border-radius: 8px;
+  object-fit: contain;
+}
+.image-viewer-close {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 .ctx-backdrop {
   position: fixed;
   inset: 0;
@@ -1185,6 +1279,9 @@ textarea {
 }
 .ctx-item:hover {
   background: var(--bg-hover);
+}
+.ctx-item.danger {
+  color: var(--danger);
 }
 .reply-banner {
   display: flex;
@@ -1368,7 +1465,7 @@ textarea {
 }
 .call-tile.speaking {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent), 0 0 18px rgba(237, 18, 43, 0.5);
+  box-shadow: 0 0 0 2px var(--accent), 0 0 18px rgba(217, 4, 41, 0.5);
 }
 .call-tile video {
   width: 100%;
