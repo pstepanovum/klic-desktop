@@ -134,6 +134,21 @@ export function Workspace({
           }, 5000);
         }
       },
+      onReaction: (e) => {
+        setMessages((prev) => {
+          for (const [cid, list] of Object.entries(prev)) {
+            if (list.some((m) => m.id === e.messageId)) {
+              return {
+                ...prev,
+                [cid]: list.map((m) =>
+                  m.id === e.messageId ? { ...m, reactions: e.reactions } : m,
+                ),
+              };
+            }
+          }
+          return prev;
+        });
+      },
       // Call signals delegate to the CallProvider (via a ref for freshness).
       onCallInvite: (e) => signalsRef.current.onInvite(e),
       onCallAccept: (e) => signalsRef.current.onAccept(e),
@@ -217,16 +232,25 @@ export function Workspace({
     );
   }
 
-  async function sendText(text: string) {
+  async function sendText(text: string, replyToId?: string) {
     const convId = activeIdRef.current;
     if (!convId) return;
     try {
-      const msg = await api.sendMessage(convId, text);
+      const msg = await api.sendMessage(convId, text, replyToId);
       appendMessage(msg);
       bumpConversation(msg, true);
     } catch {
       /* keep draft on failure */
     }
+  }
+
+  function reactMessage(messageId: string, emoji: string) {
+    const convId = activeIdRef.current;
+    if (convId) api.react(convId, messageId, emoji).catch(() => {});
+  }
+
+  function starMessage(messageId: string) {
+    api.starMessage(messageId).catch(() => {});
   }
 
   async function sendSticker(stickerId: string) {
@@ -333,6 +357,8 @@ export function Workspace({
               onTypingChange={handleTypingChange}
               onStartCall={startCall}
               onSendSticker={sendSticker}
+              onReact={reactMessage}
+              onStar={starMessage}
             />
           ) : (
             <div className="chat">

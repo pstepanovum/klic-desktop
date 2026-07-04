@@ -18,6 +18,11 @@ export interface RealtimeHandlers {
   onTyping?: (e: TypingEvent) => void;
   onRead?: (e: ReadEvent) => void;
   onPresence?: (e: PresenceEvent) => void;
+  onReaction?: (e: {
+    messageId: string;
+    conversationId?: string;
+    reactions: Message["reactions"];
+  }) => void;
   onState?: (s: ConnectionState) => void;
   // Calls (server -> client). All call actions are REST; these are signals.
   onCallInvite?: (e: CallInvite) => void;
@@ -57,6 +62,8 @@ export class Realtime {
     socket.on("presence:update", (e: PresenceEvent) =>
       this.handlers.onPresence?.(e),
     );
+
+    socket.on("message:reaction", (e) => this.handlers.onReaction?.(e));
 
     socket.on("call:invite", (e: CallInvite) => this.handlers.onCallInvite?.(e));
     socket.on("call:accept", (e: CallSignal) => this.handlers.onCallAccept?.(e));

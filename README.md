@@ -6,17 +6,30 @@ existing Klic backend (Fastify REST + Socket.IO); this repo contains no server.
 
 ## What it does
 
-- **Auth** — username + password sign-in and registration, JWT access + refresh
-  tokens persisted across launches, with silent token refresh on 401.
-- **Conversations sidebar** — your chats with avatar, last-message preview,
-  timestamp, and unread badge.
-- **Chat pane** — message history with backward pagination, send text with
-  `Enter`, rendered text plus image and file attachments (served from
-  presigned URLs), sender name in groups, timestamps, and delivery/read ticks.
-- **Realtime** — Socket.IO connection authenticated with the access token;
-  incoming messages append live, typing indicators, and read receipts.
-- **Desktop UX** — resizable two-pane layout, light/dark/system theme toggle,
-  native window with title and icon.
+- **Auth** — username + password sign-in / registration and a forgot-password
+  screen; JWT access + refresh tokens persisted across launches with silent
+  refresh on 401. The auth window is a fixed, centered, phone-sized panel; the
+  app switches to a resizable two-pane window after sign-in.
+- **Chats** — conversations sidebar (avatar, last-message preview, timestamp,
+  unread badge) and a chat pane with paginated history, `Enter` to send,
+  rendered text + image/file attachments, **stickers**, sender names in groups,
+  timestamps, and delivery/read ticks.
+- **Realtime** — Socket.IO authenticated with the access token; live incoming
+  messages, typing indicators, and read receipts.
+- **Calls** — voice, video, and **group** calls over LiveKit (livekit-client):
+  start / ring / accept / decline / hang up, mic and camera toggles, a 1:1
+  layout and a non-scrolling group grid with active-speaker highlight, plus a
+  Recent Calls history with call-back.
+- **Friends** — friends list, incoming requests (accept/decline), and a profile
+  detail view with remove/block.
+- **Settings** — Edit Profile (name/about/links/avatar), Privacy & Security
+  (visibility, read receipts, change password, recovery email, blocked users),
+  Notifications, Passkeys, Appearance (theme + bubble color), Data & Storage,
+  Language, QR code, Saved messages, Encryption info, and Report a problem.
+- **Desktop UX** — custom titlebar (no title text; native traffic lights), a
+  native macOS menu with an About panel, the Klic icon set (ported from the
+  mobile apps), TikTok Sans typography, Klic-red branding, and light/dark/system
+  theming.
 
 ## Prerequisites
 

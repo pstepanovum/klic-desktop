@@ -302,4 +302,13 @@ export const api = {
       body: { body, replyToId },
     });
   },
+  react(conversationId: string, messageId: string, emoji: string) {
+    return request<void>(
+      `/conversations/${conversationId}/messages/${messageId}/reactions`,
+      { method: "POST", body: { emoji } },
+    );
+  },
+  starMessage(messageId: string) {
+    return request<void>(`/messages/${messageId}/star`, { method: "POST" });
+  },
 };

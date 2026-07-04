@@ -4,15 +4,16 @@
 // server-backed, which is out of scope here).
 const KEY = "klic.bubbleColor";
 
+// The curated own-bubble palette shared with the mobile apps (readable with
+// white text).
 export const BUBBLE_COLORS: { id: string; color: string; name: string }[] = [
   { id: "klic", color: "#ed122b", name: "Klic Red" },
-  { id: "indigo", color: "#6366f1", name: "Indigo" },
-  { id: "blue", color: "#2f6bff", name: "Blue" },
-  { id: "green", color: "#25a35a", name: "Green" },
-  { id: "teal", color: "#0e9aa7", name: "Teal" },
-  { id: "purple", color: "#8b3ddf", name: "Purple" },
-  { id: "orange", color: "#f2731c", name: "Orange" },
-  { id: "slate", color: "#556677", name: "Slate" },
+  { id: "ocean", color: "#1565c0", name: "Ocean" },
+  { id: "forest", color: "#2e7d32", name: "Forest" },
+  { id: "violet", color: "#6a3dd8", name: "Violet" },
+  { id: "sunset", color: "#e05a00", name: "Sunset" },
+  { id: "graphite", color: "#455a64", name: "Graphite" },
+  { id: "rose", color: "#c2185b", name: "Rose" },
 ];
 
 export function loadBubbleColor(): string {

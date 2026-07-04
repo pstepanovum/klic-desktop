@@ -19,17 +19,38 @@ interface Props {
   hasMore: boolean;
   typingNames: string[];
   onLoadOlder: () => void;
-  onSend: (text: string) => void;
+  onSend: (text: string, replyToId?: string) => void;
   onTypingChange: (isTyping: boolean) => void;
   onStartCall?: (kind: "AUDIO" | "VIDEO") => void;
   onSendSticker?: (stickerId: string) => void;
+  onReact?: (messageId: string, emoji: string) => void;
+  onStar?: (messageId: string) => void;
+}
+
+const QUICK_EMOJI = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
+
+// Render message text with clickable links.
+function linkify(text: string) {
+  const parts = text.split(/(https?:\/\/[^\s]+)/g);
+  return parts.map((p, i) =>
+    /^https?:\/\//.test(p) ? (
+      <a key={i} href={p} target="_blank" rel="noreferrer" className="msg-link">
+        {p}
+      </a>
+    ) : (
+      <span key={i}>{p}</span>
+    ),
+  );
 }
 
 function Tick({ status }: { status?: Message["status"] }) {
   if (!status) return null;
-  if (status === "read") return <span className="tick read">✓✓</span>;
-  if (status === "delivered") return <span className="tick">✓✓</span>;
-  return <span className="tick">✓</span>;
+  const doubled = status === "read" || status === "delivered";
+  return (
+    <span className={`tick ${status === "read" ? "read" : ""}`}>
+      <Icon name={doubled ? "check_double" : "check"} size={12} />
+    </span>
+  );
 }
 
 function AttachmentView({ att }: { att: Attachment }) {
@@ -43,6 +64,19 @@ function AttachmentView({ att }: { att: Attachment }) {
         onClick={() => att.url && window.open(att.url, "_blank")}
       />
     );
+  }
+  if (att.kind === "VIDEO" || att.kind === "VIDEO_NOTE") {
+    return (
+      <video
+        className="bubble-img"
+        src={att.url}
+        controls
+        preload="metadata"
+      />
+    );
+  }
+  if (att.kind === "VOICE") {
+    return <audio className="bubble-audio" src={att.url} controls preload="metadata" />;
   }
   return (
     <a className="bubble-file" href={att.url} target="_blank" rel="noreferrer">
@@ -67,9 +101,15 @@ export function ChatPane({
   onTypingChange,
   onStartCall,
   onSendSticker,
+  onReact,
+  onStar,
 }: Props) {
   const [draft, setDraft] = useState("");
   const [showStickers, setShowStickers] = useState(false);
+  const [menu, setMenu] = useState<{ x: number; y: number; m: Message } | null>(
+    null,
+  );
+  const [replyTo, setReplyTo] = useState<Message | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const typingTimer = useRef<number | null>(null);
@@ -127,8 +167,9 @@ export function ChatPane({
   function send() {
     const text = draft.trim();
     if (!text) return;
-    onSend(text);
+    onSend(text, replyTo?.id);
     setDraft("");
+    setReplyTo(null);
     stopTyping();
   }
 
@@ -203,29 +244,60 @@ export function ChatPane({
           const grouped = prev && prev.senderId === m.senderId;
           const showSender = isGroup && !mine && !grouped;
           const deleted = !!m.deletedAt;
+          const isSticker =
+            m.kind === "STICKER" || (!!m.stickerUrl && !m.body);
           return (
             <div
               key={m.id}
               className={`msg-row ${mine ? "out" : "in"} ${grouped ? "grouped" : ""}`}
             >
-              <div className="bubble">
+              <div
+                className={`bubble ${isSticker ? "sticker-only" : ""}`}
+                onContextMenu={(e) => {
+                  if (deleted) return;
+                  e.preventDefault();
+                  setMenu({ x: e.clientX, y: e.clientY, m });
+                }}
+              >
                 {showSender && (
                   <div className="bubble-sender">
                     {displayNameFor(m.senderId, conversation, me)}
+                  </div>
+                )}
+                {m.replyTo && (
+                  <div className="bubble-reply">
+                    {m.replyTo.deleted ? "Deleted message" : m.replyTo.preview}
                   </div>
                 )}
                 {m.attachments.map((att) => (
                   <AttachmentView key={att.id} att={att} />
                 ))}
                 {m.stickerUrl && (
-                  <img className="bubble-img" src={m.stickerUrl} alt="sticker" />
+                  <img
+                    className={isSticker ? "bubble-sticker" : "bubble-img"}
+                    src={m.stickerUrl}
+                    alt="sticker"
+                  />
                 )}
                 {deleted ? (
                   <div className="bubble-text" style={{ fontStyle: "italic", opacity: 0.7 }}>
                     Message deleted
                   </div>
                 ) : (
-                  m.body && <div className="bubble-text">{m.body}</div>
+                  m.body && <div className="bubble-text">{linkify(m.body)}</div>
+                )}
+                {m.reactions && m.reactions.length > 0 && (
+                  <div className="bubble-reactions">
+                    {m.reactions.map((r) => (
+                      <button
+                        key={r.emoji}
+                        className={`reaction ${r.mine ? "mine" : ""}`}
+                        onClick={() => onReact?.(m.id, r.emoji)}
+                      >
+                        {r.emoji} {r.count}
+                      </button>
+                    ))}
+                  </div>
                 )}
                 <div className="bubble-meta">
                   <span>{clockTime(m.createdAt)}</span>
@@ -237,6 +309,78 @@ export function ChatPane({
         })}
         <div ref={bottomRef} />
       </div>
+
+      {menu && (
+        <>
+          <div className="ctx-backdrop" onClick={() => setMenu(null)} />
+          <div
+            className="ctx-menu"
+            style={{
+              left: Math.min(menu.x, window.innerWidth - 220),
+              top: Math.min(menu.y, window.innerHeight - 200),
+            }}
+          >
+            {onReact && (
+              <div className="ctx-emoji">
+                {QUICK_EMOJI.map((e) => (
+                  <button
+                    key={e}
+                    onClick={() => {
+                      onReact(menu.m.id, e);
+                      setMenu(null);
+                    }}
+                  >
+                    {e}
+                  </button>
+                ))}
+              </div>
+            )}
+            <button
+              className="ctx-item"
+              onClick={() => {
+                setReplyTo(menu.m);
+                setMenu(null);
+              }}
+            >
+              Reply
+            </button>
+            <button
+              className="ctx-item"
+              onClick={() => {
+                navigator.clipboard?.writeText(menu.m.body).catch(() => {});
+                setMenu(null);
+              }}
+            >
+              Copy
+            </button>
+            {onStar && (
+              <button
+                className="ctx-item"
+                onClick={() => {
+                  onStar(menu.m.id);
+                  setMenu(null);
+                }}
+              >
+                Star
+              </button>
+            )}
+          </div>
+        </>
+      )}
+
+      {replyTo && (
+        <div className="reply-banner">
+          <div className="reply-banner-body">
+            <div className="reply-banner-title">
+              Replying to {displayNameFor(replyTo.senderId, conversation, me)}
+            </div>
+            <div className="reply-banner-text">{replyTo.body || "Attachment"}</div>
+          </div>
+          <button className="icon-btn" onClick={() => setReplyTo(null)}>
+            <Icon name="close" size={16} />
+          </button>
+        </div>
+      )}
 
       <div className="composer">
         {onSendSticker && (

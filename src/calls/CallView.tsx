@@ -37,11 +37,9 @@ export function CallView() {
 
   return (
     <div className="call-overlay">
-      <div className="call-header">
-        <div>
-          <div className="call-title">{meta.title}</div>
-          <div className="call-status">{status}</div>
-        </div>
+      <div className="call-header" data-tauri-drag-region>
+        <div className="call-title">{meta.title}</div>
+        <div className="call-status">{status}</div>
       </div>
 
       {isGroup ? (
