@@ -286,6 +286,27 @@ export const api = {
       body: { stickerId },
     });
   },
+  uploadUrl(
+    conversationId: string,
+    kind: string,
+    contentType: string,
+    byteSize: number,
+  ) {
+    return request<{ key: string; uploadUrl: string }>("/uploads", {
+      method: "POST",
+      body: { conversationId, kind, contentType, byteSize },
+    });
+  },
+  sendAttachment(
+    conversationId: string,
+    attachments: { key: string; kind: string }[],
+    body?: string,
+  ) {
+    return request<Message>(`/conversations/${conversationId}/messages`, {
+      method: "POST",
+      body: { attachments, body },
+    });
+  },
 
   // ---- Conversations ----
   conversations() {

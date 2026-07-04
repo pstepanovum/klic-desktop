@@ -219,6 +219,7 @@ export interface Message {
   deletedAt?: string;
   editedAt?: string;
   pinnedAt?: string;
+  call?: { kind: CallKind; outcome: string; durationMs?: number };
 }
 
 export type ConversationType = "DIRECT" | "GROUP";

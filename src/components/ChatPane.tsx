@@ -27,9 +27,29 @@ interface Props {
   onStar?: (messageId: string) => void;
   onPin?: (messageId: string) => void;
   onDelete?: (messageId: string) => void;
+  onSendFile?: (file: File) => void;
 }
 
 const QUICK_EMOJI = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
+
+function callDur(ms?: number): string {
+  if (!ms) return "";
+  const s = Math.round(ms / 1000);
+  const m = Math.floor(s / 60);
+  return m > 0 ? `${m}m ${s % 60}s` : `${s}s`;
+}
+
+function callEventText(m: Message): string {
+  const c = m.call;
+  const type = c?.kind === "VIDEO" ? "video" : "voice";
+  if (!c) return "Call";
+  if (c.outcome === "missed") return `Missed ${type} call`;
+  if (c.outcome === "declined") return `Declined ${type} call`;
+  if (c.outcome === "canceled") return `Cancelled ${type} call`;
+  if (c.outcome === "failed") return `${type === "video" ? "Video" : "Voice"} call failed`;
+  const dur = c.durationMs ? ` · ${callDur(c.durationMs)}` : "";
+  return `${type === "video" ? "Video" : "Voice"} call${dur}`;
+}
 
 // Render message text with clickable links.
 function linkify(text: string) {
@@ -113,9 +133,11 @@ export function ChatPane({
   onStar,
   onPin,
   onDelete,
+  onSendFile,
 }: Props) {
   const [draft, setDraft] = useState("");
   const [showStickers, setShowStickers] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const [menu, setMenu] = useState<{ x: number; y: number; m: Message } | null>(
     null,
   );
@@ -257,6 +279,20 @@ export function ChatPane({
           const deleted = !!m.deletedAt;
           const isSticker =
             m.kind === "STICKER" || (!!m.stickerUrl && !m.body);
+          if (m.kind === "CALL_EVENT") {
+            return (
+              <div key={m.id} className="call-event">
+                <Icon
+                  name={m.call?.kind === "VIDEO" ? "bold_video" : "bold_phone"}
+                  size={13}
+                />
+                <span>{callEventText(m)}</span>
+                <span className="call-event-time">
+                  {clockTime(m.createdAt)}
+                </span>
+              </div>
+            );
+          }
           return (
             <div
               key={m.id}
@@ -425,31 +461,54 @@ export function ChatPane({
       )}
 
       <div className="composer">
-        {onSendSticker && (
-          <div style={{ position: "relative" }}>
+        {onSendFile && (
+          <>
             <button
               className="icon-btn composer-btn"
-              title="Stickers"
-              onClick={() => setShowStickers((v) => !v)}
+              title="Attach file"
+              onClick={() => fileRef.current?.click()}
             >
-              <Icon name="smile" size={23} />
+              <Icon name="media" size={22} />
             </button>
-            {showStickers && (
-              <StickerPicker
-                onPick={(id) => onSendSticker(id)}
-                onClose={() => setShowStickers(false)}
-              />
-            )}
-          </div>
+            <input
+              ref={fileRef}
+              type="file"
+              hidden
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) onSendFile(f);
+                e.target.value = "";
+              }}
+            />
+          </>
         )}
-        <textarea
-          value={draft}
-          placeholder="Write a message…"
-          rows={1}
-          onChange={(e) => handleDraft(e.target.value)}
-          onKeyDown={onKeyDown}
-          onBlur={stopTyping}
-        />
+        <div className="composer-input">
+          <textarea
+            value={draft}
+            placeholder="Write a message…"
+            rows={1}
+            onChange={(e) => handleDraft(e.target.value)}
+            onKeyDown={onKeyDown}
+            onBlur={stopTyping}
+          />
+          {onSendSticker && (
+            <>
+              <button
+                className="composer-emoji"
+                title="Stickers"
+                onClick={() => setShowStickers((v) => !v)}
+              >
+                <Icon name="smile" size={22} />
+              </button>
+              {showStickers && (
+                <StickerPicker
+                  onPick={(id) => onSendSticker(id)}
+                  onClose={() => setShowStickers(false)}
+                />
+              )}
+            </>
+          )}
+        </div>
         <button
           className="send-btn"
           onClick={send}

@@ -507,6 +507,8 @@ textarea {
 .conv-list {
   flex: 1;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 .conv-item {
   display: flex;
@@ -1017,8 +1019,8 @@ textarea {
 }
 .sticker-popover {
   position: absolute;
-  bottom: 52px;
-  left: 0;
+  bottom: 46px;
+  right: 0;
   z-index: 21;
   width: 320px;
   max-height: 340px;
@@ -1104,6 +1106,21 @@ textarea {
   display: flex;
   flex-direction: column;
   gap: 3px;
+}
+.call-event {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 6px auto;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--bg-active);
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+.call-event-time {
+  color: var(--text-faint);
 }
 .load-more {
   align-self: center;
@@ -1356,22 +1373,49 @@ textarea {
   border-top: 1px solid var(--border);
   flex-shrink: 0;
 }
-.composer textarea {
+.composer-input {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  background: var(--bg-input);
+  border-radius: 22px;
+  min-width: 0;
+}
+.composer-input textarea {
   flex: 1;
   resize: none;
   max-height: 140px;
   min-height: 20px;
-  padding: 11px 16px;
+  padding: 11px 44px 11px 16px;
   border: none;
   border-radius: 22px;
-  background: var(--bg-input);
+  background: transparent;
   color: var(--text);
   font-size: 14px;
   line-height: 1.35;
   outline: none;
 }
-.composer textarea::placeholder {
+.composer-input textarea::placeholder {
   color: var(--field-hint);
+}
+.composer-emoji {
+  position: absolute;
+  right: 8px;
+  bottom: 6px;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+.composer-emoji:hover {
+  background: var(--bg-hover);
+  color: var(--text);
 }
 .send-btn {
   width: 42px;

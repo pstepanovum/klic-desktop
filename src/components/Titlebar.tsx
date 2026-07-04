@@ -28,15 +28,6 @@ export function Titlebar({
 }: Props) {
   return (
     <div className={`titlebar tb-${variant}`} data-tauri-drag-region>
-      {variant === "app" && onToggleTheme && theme && (
-        <button
-          className="titlebar-theme"
-          onClick={onToggleTheme}
-          title="Toggle theme"
-        >
-          <Icon name={themeIcon(theme)} size={19} />
-        </button>
-      )}
       {variant === "app" && onSearch && (
         <div className="titlebar-search">
           <Icon name="search" size={16} />
@@ -49,7 +40,18 @@ export function Titlebar({
         </div>
       )}
       <div className="titlebar-spacer" data-tauri-drag-region />
-      {right && <div className="titlebar-right">{right}</div>}
+      <div className="titlebar-right">
+        {right}
+        {variant === "app" && onToggleTheme && theme && (
+          <button
+            className="titlebar-theme"
+            onClick={onToggleTheme}
+            title="Toggle theme"
+          >
+            <Icon name={themeIcon(theme)} size={19} />
+          </button>
+        )}
+      </div>
     </div>
   );
 }

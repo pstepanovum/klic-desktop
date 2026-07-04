@@ -291,6 +291,33 @@ export function Workspace({
     }
   }
 
+  async function sendFile(file: File) {
+    const convId = activeIdRef.current;
+    if (!convId) return;
+    const ct = file.type || "application/octet-stream";
+    const kind = ct.startsWith("image/")
+      ? "IMAGE"
+      : ct.startsWith("video/")
+        ? "VIDEO"
+        : ct.startsWith("audio/")
+          ? "VOICE"
+          : "FILE";
+    try {
+      const { key, uploadUrl } = await api.uploadUrl(convId, kind, ct, file.size);
+      const put = await fetch(uploadUrl, {
+        method: "PUT",
+        headers: { "Content-Type": ct },
+        body: file,
+      });
+      if (!put.ok) throw new Error("upload failed");
+      const msg = await api.sendAttachment(convId, [{ key, kind }]);
+      appendMessage(msg);
+      bumpConversation(msg, true);
+    } catch {
+      /* ignore upload failure */
+    }
+  }
+
   function handleTypingChange(isTyping: boolean) {
     if (activeId) realtime.emitTyping(activeId, isTyping);
   }
@@ -389,6 +416,7 @@ export function Workspace({
               onTypingChange={handleTypingChange}
               onStartCall={startCall}
               onSendSticker={sendSticker}
+              onSendFile={sendFile}
               onReact={reactMessage}
               onStar={starMessage}
               onPin={pinMessage}
