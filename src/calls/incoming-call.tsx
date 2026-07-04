@@ -1,6 +1,6 @@
-import { Icon } from "../icons/Icon";
+import { Icon } from "../icons/icon";
 import { initials } from "../util/format";
-import { useCall } from "./CallProvider";
+import { useCall } from "./call-provider";
 
 // Ringing overlay for an inbound call (socket call:invite → accept/decline).
 export function IncomingCall() {

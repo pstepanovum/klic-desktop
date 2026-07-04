@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Track, type Participant } from "livekit-client";
-import { Icon } from "../icons/Icon";
+import { Icon } from "../icons/icon";
 import { initials } from "../util/format";
 import { isCameraEnabled, isMicEnabled } from "./room";
 

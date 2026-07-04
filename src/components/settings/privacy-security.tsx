@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, ApiError } from "../../api/client";
 import type { BlockedEntry, SelfUser, Visibility } from "../../api/types";
-import { Avatar } from "../Avatar";
+import { Avatar } from "../avatar";
 import { PageHeader, Field, ToggleRow, VisibilityPicker } from "./ui";
 
 interface Props {

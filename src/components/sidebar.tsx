@@ -1,5 +1,5 @@
 import type { Conversation } from "../api/types";
-import { Avatar } from "./Avatar";
+import { Avatar } from "./avatar";
 import {
   conversationTitle,
   conversationAvatar,

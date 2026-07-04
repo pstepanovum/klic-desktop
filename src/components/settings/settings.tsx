@@ -1,21 +1,21 @@
 import { useState } from "react";
 import type { SelfUser } from "../../api/types";
-import { Avatar } from "../Avatar";
-import { Icon, type IconName } from "../../icons/Icon";
+import { Avatar } from "../avatar";
+import { Icon, type IconName } from "../../icons/icon";
 import type { Theme } from "../../util/theme";
-import { EditProfile } from "./EditProfile";
-import { PrivacySecurity } from "./PrivacySecurity";
-import { Notifications } from "./Notifications";
-import { Passkeys } from "./Passkeys";
-import { SavedMessages } from "./SavedMessages";
-import { QrCode } from "./QrCode";
+import { EditProfile } from "./edit-profile";
+import { PrivacySecurity } from "./privacy-security";
+import { Notifications } from "./notifications";
+import { Passkeys } from "./passkeys";
+import { SavedMessages } from "./saved-messages";
+import { QrCode } from "./qr-code";
 import {
   ChatThemePage,
   DataStorage,
   Language,
   EncryptionInfo,
   ReportProblem,
-} from "./MiscPages";
+} from "./misc-pages";
 
 type PageId =
   | "profile"

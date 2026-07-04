@@ -9,10 +9,10 @@ import {
 } from "./api/tokens";
 import type { SelfUser } from "./api/types";
 import { realtime } from "./realtime/socket";
-import { AuthScreen } from "./components/AuthScreen";
-import { Titlebar } from "./components/Titlebar";
-import { Workspace } from "./Workspace";
-import { CallProvider } from "./calls/CallProvider";
+import { AuthScreen } from "./components/auth-screen";
+import { Titlebar } from "./components/titlebar";
+import { Workspace } from "./workspace";
+import { CallProvider } from "./calls/call-provider";
 import { loadTheme, applyTheme, nextTheme, type Theme } from "./util/theme";
 import { applyAuthWindow, applyAppWindow } from "./util/window";
 

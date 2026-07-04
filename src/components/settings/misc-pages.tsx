@@ -8,7 +8,7 @@ import {
   PATTERN_IDS,
   loadPattern,
   applyPattern,
-} from "../../util/chatTheme";
+} from "../../util/chat-theme";
 import type { Theme } from "../../util/theme";
 
 const THEME_MODES: { id: Theme; label: string }[] = [

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import type { CallHistoryItem } from "../api/types";
-import { Avatar } from "./Avatar";
-import { Icon } from "../icons/Icon";
+import { Avatar } from "./avatar";
+import { Icon } from "../icons/icon";
 import { shortTime } from "../util/format";
 
 function duration(ms?: number): string {

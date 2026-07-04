@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Icon, type AnyIconName } from "../icons/Icon";
+import { Icon, type AnyIconName } from "../icons/icon";
 import type { Theme } from "../util/theme";
 
 interface Props {

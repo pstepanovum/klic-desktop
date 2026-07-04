@@ -6,8 +6,8 @@ import type {
   FriendRequest,
   PublicUser,
 } from "../api/types";
-import { Avatar } from "./Avatar";
-import { Icon } from "../icons/Icon";
+import { Avatar } from "./avatar";
+import { Icon } from "../icons/icon";
 import { humanSize } from "../util/format";
 
 export function Friends({ conversations }: { conversations: Conversation[] }) {

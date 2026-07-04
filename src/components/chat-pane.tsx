@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { Attachment, Conversation, Message, SelfUser } from "../api/types";
-import { Avatar } from "./Avatar";
+import { Avatar } from "./avatar";
 import {
   clockTime,
   conversationTitle,
@@ -8,8 +8,8 @@ import {
   displayNameFor,
   humanSize,
 } from "../util/format";
-import { Icon, type IconName } from "../icons/Icon";
-import { StickerPicker } from "./StickerPicker";
+import { Icon, type IconName } from "../icons/icon";
+import { StickerPicker } from "./sticker-picker";
 
 interface Props {
   me: SelfUser;

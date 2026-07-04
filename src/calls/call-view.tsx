@@ -1,7 +1,7 @@
 import type { Participant } from "livekit-client";
-import { Icon } from "../icons/Icon";
-import { useCall } from "./CallProvider";
-import { CallTile } from "./CallTile";
+import { Icon } from "../icons/icon";
+import { useCall } from "./call-provider";
+import { CallTile } from "./call-tile";
 import { gridColumns } from "./room";
 
 function labelFor(p: Participant): string {

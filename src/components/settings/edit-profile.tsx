@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { api, ApiError } from "../../api/client";
 import type { SelfUser } from "../../api/types";
-import { Avatar } from "../Avatar";
+import { Avatar } from "../avatar";
 import { PageHeader, Field } from "./ui";
 
 interface Props {
