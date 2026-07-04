@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { api, onSessionExpired } from "./api/client";
+import { api, ApiError, onSessionExpired } from "./api/client";
+import { putFile } from "./util/upload";
 import type { Session } from "./api/tokens";
 import type { Conversation, Message, SelfUser } from "./api/types";
 import { realtime, type ConnectionState } from "./realtime/socket";
@@ -53,6 +54,8 @@ export function Workspace({
   const [history, setHistory] = useState<Record<string, HistoryState>>({});
   const [typing, setTyping] = useState<Record<string, Set<string>>>({});
   const [conn, setConn] = useState<ConnectionState>("disconnected");
+  const [toast, setToast] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
 
   const activeIdRef = useRef<string | null>(null);
   const meIdRef = useRef<string>(self.id);
@@ -302,19 +305,21 @@ export function Workspace({
         : ct.startsWith("audio/")
           ? "VOICE"
           : "FILE";
+    setToast("Uploading…");
     try {
       const { key, uploadUrl } = await api.uploadUrl(convId, kind, ct, file.size);
-      const put = await fetch(uploadUrl, {
-        method: "PUT",
-        headers: { "Content-Type": ct },
-        body: file,
-      });
-      if (!put.ok) throw new Error("upload failed");
+      await putFile(uploadUrl, ct, file);
       const msg = await api.sendAttachment(convId, [{ key, kind }]);
       appendMessage(msg);
       bumpConversation(msg, true);
-    } catch {
-      /* ignore upload failure */
+      setToast(null);
+    } catch (e) {
+      setToast(
+        e instanceof ApiError
+          ? e.message
+          : "Couldn't upload — media storage may be unavailable.",
+      );
+      window.setTimeout(() => setToast(null), 4000);
     }
   }
 
@@ -403,25 +408,45 @@ export function Workspace({
             onSelect={selectConversation}
           />
           {active ? (
-            <ChatPane
-              key={active.id}
-              me={self}
-              conversation={active}
-              messages={activeMessages}
-              loadingHistory={activeHistory.loading}
-              hasMore={activeHistory.hasMore}
-              typingNames={typingNames}
-              onLoadOlder={loadOlder}
-              onSend={sendText}
-              onTypingChange={handleTypingChange}
-              onStartCall={startCall}
-              onSendSticker={sendSticker}
-              onSendFile={sendFile}
-              onReact={reactMessage}
-              onStar={starMessage}
-              onPin={pinMessage}
-              onDelete={deleteMessage}
-            />
+            <div
+              className="chat-dropzone"
+              onDragOver={(e) => {
+                e.preventDefault();
+                if (!dragging) setDragging(true);
+              }}
+              onDragLeave={(e) => {
+                if (e.currentTarget === e.target) setDragging(false);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragging(false);
+                const f = e.dataTransfer.files?.[0];
+                if (f) sendFile(f);
+              }}
+            >
+              <ChatPane
+                key={active.id}
+                me={self}
+                conversation={active}
+                messages={activeMessages}
+                loadingHistory={activeHistory.loading}
+                hasMore={activeHistory.hasMore}
+                typingNames={typingNames}
+                onLoadOlder={loadOlder}
+                onSend={sendText}
+                onTypingChange={handleTypingChange}
+                onStartCall={startCall}
+                onSendSticker={sendSticker}
+                onSendFile={sendFile}
+                onReact={reactMessage}
+                onStar={starMessage}
+                onPin={pinMessage}
+                onDelete={deleteMessage}
+              />
+              {dragging && (
+                <div className="drop-overlay">Drop to send</div>
+              )}
+            </div>
           ) : (
             <div className="chat">
               <div className="chat-empty">
@@ -453,6 +478,7 @@ export function Workspace({
 
       {call.phase === "incoming" && <IncomingCall />}
       {showCall && <CallView />}
+      {toast && <div className="toast">{toast}</div>}
     </div>
   );
 }
