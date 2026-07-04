@@ -131,11 +131,11 @@
   user-select: none;
   -webkit-user-select: none;
 }
-.titlebar.app {
+.titlebar.tb-app {
   background: var(--bg-elevated);
   border-bottom: 1px solid var(--border);
 }
-.titlebar.auth {
+.titlebar.tb-auth {
   background: transparent;
   position: absolute;
   top: 0;
@@ -143,7 +143,7 @@
   right: 0;
   z-index: 5;
 }
-.titlebar.auth .titlebar-logo {
+.titlebar.tb-auth .titlebar-logo {
   display: none;
 }
 .titlebar-logo {
@@ -231,13 +231,15 @@ textarea {
   background: var(--sheet);
   border-radius: 50% 50% 0 0 / 22% 22% 0 0;
   box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.12);
+  pointer-events: none;
 }
 .auth.signup .auth-sheet {
   height: 72%;
 }
 .auth-content {
   position: relative;
-  z-index: 1;
+  z-index: 6;
+  pointer-events: auto;
   align-self: flex-end;
   width: 100%;
   max-width: 420px;
@@ -1021,6 +1023,189 @@ textarea {
 }
 .send-btn:disabled {
   opacity: 0.45;
+}
+
+/* ---------- Calls ---------- */
+.call-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: #0b0b0d;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+}
+.call-header {
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.call-title {
+  font-size: 17px;
+  font-weight: 600;
+}
+.call-status {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+}
+.call-grid {
+  flex: 1;
+  display: grid;
+  gap: 10px;
+  padding: 0 16px;
+  align-content: center;
+  min-height: 0;
+}
+.call-1to1 {
+  flex: 1;
+  position: relative;
+  padding: 0 16px 8px;
+  min-height: 0;
+  display: flex;
+}
+.call-1to1 .call-tile {
+  flex: 1;
+}
+.call-pip {
+  position: absolute;
+  right: 28px;
+  bottom: 20px;
+  width: 180px;
+  height: 120px;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+.call-tile {
+  position: relative;
+  background: #17181c;
+  border-radius: 14px;
+  overflow: hidden;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid transparent;
+  transition: border-color 0.25s;
+}
+.call-tile.speaking {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent), 0 0 18px rgba(237, 18, 43, 0.5);
+}
+.call-tile video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.call-tile video.mirror {
+  transform: scaleX(-1);
+}
+.call-avatar {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  font-weight: 600;
+}
+.call-avatar.big {
+  width: 110px;
+  height: 110px;
+  font-size: 40px;
+}
+.call-tile-label {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.5);
+  font-size: 12px;
+}
+.call-mute-badge {
+  color: #ff6b6b;
+  display: inline-flex;
+}
+.call-waiting {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.call-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 22px;
+}
+.call-ctl {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.call-ctl:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+.call-ctl.off {
+  background: #fff;
+  color: #17181c;
+}
+.call-ctl.hangup {
+  background: var(--danger);
+  transform: rotate(135deg);
+}
+.call-ctl.accept {
+  background: var(--read-green);
+}
+.incoming {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.incoming-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 34px 40px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+.incoming-name {
+  font-size: 20px;
+  font-weight: 600;
+  margin-top: 16px;
+}
+.incoming-sub {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin-top: 4px;
+}
+.incoming-actions {
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  margin-top: 28px;
 }
 
 /* ---------- Misc ---------- */

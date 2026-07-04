@@ -8,6 +8,7 @@ import {
   displayNameFor,
   humanSize,
 } from "../util/format";
+import { Icon } from "../icons/Icon";
 
 interface Props {
   me: SelfUser;
@@ -19,6 +20,7 @@ interface Props {
   onLoadOlder: () => void;
   onSend: (text: string) => void;
   onTypingChange: (isTyping: boolean) => void;
+  onStartCall?: (kind: "AUDIO" | "VIDEO") => void;
 }
 
 function Tick({ status }: { status?: Message["status"] }) {
@@ -61,6 +63,7 @@ export function ChatPane({
   onLoadOlder,
   onSend,
   onTypingChange,
+  onStartCall,
 }: Props) {
   const [draft, setDraft] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -149,12 +152,30 @@ export function ChatPane({
           name={conversationTitle(conversation)}
           size="sm"
         />
-        <div>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div className="chat-header-title">
             {conversationTitle(conversation)}
           </div>
           <div className="chat-header-sub">{subtitle}</div>
         </div>
+        {onStartCall && (
+          <div style={{ display: "flex", gap: 2 }}>
+            <button
+              className="icon-btn"
+              title="Voice call"
+              onClick={() => onStartCall("AUDIO")}
+            >
+              <Icon name="call_solid" size={19} />
+            </button>
+            <button
+              className="icon-btn"
+              title="Video call"
+              onClick={() => onStartCall("VIDEO")}
+            >
+              <Icon name="video_solid" size={19} />
+            </button>
+          </div>
+        )}
       </header>
 
       <div className="messages" ref={scrollRef}>

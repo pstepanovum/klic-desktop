@@ -11,7 +11,7 @@ interface Props {
 // inset. Interactive children opt out of dragging automatically.
 export function Titlebar({ variant = "app", right }: Props) {
   return (
-    <div className={`titlebar ${variant}`} data-tauri-drag-region>
+    <div className={`titlebar tb-${variant}`} data-tauri-drag-region>
       <img
         className="titlebar-logo"
         src="/wordmark-red.svg"
