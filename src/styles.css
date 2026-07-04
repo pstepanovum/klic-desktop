@@ -61,7 +61,7 @@
      Separation between panes comes from subtle background steps only. */
   --bg: #ffffff; /* content surface */
   --bg-elevated: #ffffff;
-  --bg-sidebar: #f6f6f7; /* very light gray sidebars / rails */
+  --bg-sidebar: #ededf0; /* slightly darker gray sidebars / rails, no stroke */
   --bg-input: #f0f0f2;
   --bg-hover: #eeeef0;
   --bg-active: #e8e8ec;
@@ -151,8 +151,7 @@
   -webkit-user-select: none;
 }
 .titlebar.tb-app {
-  background: var(--bg-elevated);
-  border-bottom: 1px solid var(--border);
+  background: var(--bg);
 }
 .titlebar.tb-auth {
   background: transparent;

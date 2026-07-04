@@ -246,7 +246,7 @@ export function ChatPane({
               title="Stickers"
               onClick={() => setShowStickers((v) => !v)}
             >
-              <Icon name="media" size={22} />
+              <Icon name="smile" size={23} />
             </button>
             {showStickers && (
               <StickerPicker
@@ -270,7 +270,7 @@ export function ChatPane({
           disabled={draft.trim().length === 0}
           title="Send (Enter)"
         >
-          ➤
+          <Icon name="paperplane" size={20} />
         </button>
       </div>
     </section>
