@@ -309,7 +309,15 @@ export function Workspace({
     try {
       const { key, uploadUrl } = await api.uploadUrl(convId, kind, ct, file.size);
       await putFile(uploadUrl, ct, file);
-      const msg = await api.sendAttachment(convId, [{ key, kind }]);
+      const msg = await api.sendAttachment(convId, [
+        {
+          key,
+          kind,
+          contentType: ct,
+          byteSize: file.size,
+          fileName: file.name,
+        },
+      ]);
       appendMessage(msg);
       bumpConversation(msg, true);
       setToast(null);
@@ -458,7 +466,7 @@ export function Workspace({
           )}
         </>
       )}
-      {tab === "friends" && <Friends />}
+      {tab === "friends" && <Friends conversations={conversations} />}
       {tab === "calls" && (
         <RecentCalls
           onCallBack={(convId, kind, title) =>

@@ -24,3 +24,22 @@ export function applyBubbleColor(color: string): void {
   document.documentElement.style.setProperty("--bubble-out", color);
   localStorage.setItem(KEY, color);
 }
+
+// Chat background patterns (klic-assets/chat-them/1..10.svg → public/patterns).
+// 0 = none. Applied as a faint repeating wallpaper behind messages.
+const PATTERN_KEY = "klic.chatPattern";
+export const PATTERN_IDS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
+
+export function loadPattern(): number {
+  const n = Number(localStorage.getItem(PATTERN_KEY));
+  return Number.isFinite(n) && n >= 0 && n <= 10 ? n : 0;
+}
+
+export function applyPattern(id: number): void {
+  const root = document.documentElement;
+  root.style.setProperty(
+    "--chat-pattern",
+    id > 0 ? `url("/patterns/${id}.svg")` : "none",
+  );
+  localStorage.setItem(PATTERN_KEY, String(id));
+}

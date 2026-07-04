@@ -5,6 +5,9 @@ import {
   BUBBLE_COLORS,
   loadBubbleColor,
   applyBubbleColor,
+  PATTERN_IDS,
+  loadPattern,
+  applyPattern,
 } from "../../util/chatTheme";
 import type { Theme } from "../../util/theme";
 
@@ -23,6 +26,7 @@ export function ChatThemePage({
   onSetTheme: (t: Theme) => void;
 }) {
   const [color, setColor] = useState(loadBubbleColor());
+  const [pattern, setPattern] = useState(loadPattern());
   return (
     <div className="settings-detail-inner">
       <PageHeader
@@ -75,6 +79,33 @@ export function ChatThemePage({
               cursor: "pointer",
             }}
           />
+        ))}
+      </div>
+
+      <div className="field-group" style={{ marginTop: 26 }}>
+        <label>Chat background</label>
+      </div>
+      <div className="pattern-grid">
+        {PATTERN_IDS.map((id) => (
+          <button
+            key={id}
+            className={`pattern-cell ${pattern === id ? "active" : ""}`}
+            onClick={() => {
+              setPattern(id);
+              applyPattern(id);
+            }}
+            title={id === 0 ? "None" : `Pattern ${id}`}
+            style={
+              id > 0
+                ? {
+                    backgroundImage: `url("/patterns/${id}.svg")`,
+                    backgroundSize: "220px",
+                  }
+                : undefined
+            }
+          >
+            {id === 0 && "None"}
+          </button>
         ))}
       </div>
     </div>

@@ -8,6 +8,7 @@ import {
 } from "./tokens";
 import type {
   ActiveCall,
+  Attachment,
   AuthResponse,
   BlockedEntry,
   CallHistoryItem,
@@ -275,6 +276,12 @@ export const api = {
   callHistory(limit = 40) {
     return request<CallHistoryItem[]>("/calls", { query: { limit } });
   },
+  conversationAttachments(conversationId: string) {
+    return request<{ items: Attachment[]; nextCursor: string | null }>(
+      `/conversations/${conversationId}/attachments`,
+      { query: { limit: 60 } },
+    );
+  },
 
   // ---- Stickers ----
   stickers() {
@@ -299,7 +306,15 @@ export const api = {
   },
   sendAttachment(
     conversationId: string,
-    attachments: { key: string; kind: string }[],
+    attachments: {
+      key: string;
+      kind: string;
+      contentType: string;
+      byteSize: number;
+      fileName?: string;
+      width?: number;
+      height?: number;
+    }[],
     body?: string,
   ) {
     return request<Message>(`/conversations/${conversationId}/messages`, {

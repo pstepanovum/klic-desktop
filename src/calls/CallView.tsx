@@ -16,10 +16,12 @@ export function CallView() {
     participants,
     micOn,
     camOn,
+    screenOn,
     connected,
     phase,
     toggleMic,
     toggleCam,
+    toggleScreen,
     hangup,
   } = useCall();
   if (!meta) return null;
@@ -94,6 +96,13 @@ export function CallView() {
           title={camOn ? "Stop video" : "Start video"}
         >
           <Icon name={camOn ? "bold_video" : "bold_camera_slash"} size={24} />
+        </button>
+        <button
+          className={`call-ctl ${screenOn ? "on-accent" : ""}`}
+          onClick={toggleScreen}
+          title={screenOn ? "Stop sharing screen" : "Share screen"}
+        >
+          <Icon name="bold_monitor" size={24} />
         </button>
         <button className="call-ctl hangup" onClick={hangup} title="Hang up">
           <Icon name="bold_call_slash" size={24} />

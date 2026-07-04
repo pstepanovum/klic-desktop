@@ -35,6 +35,7 @@ export interface CallContextValue {
   room: Room | null;
   micOn: boolean;
   camOn: boolean;
+  screenOn: boolean;
   connected: boolean;
   error: string | null;
   startCall: (
@@ -48,6 +49,7 @@ export interface CallContextValue {
   hangup: () => void;
   toggleMic: () => void;
   toggleCam: () => void;
+  toggleScreen: () => void;
   // Socket signal sinks — wired by the workspace to the realtime connection.
   signals: {
     onInvite: (e: CallInvite) => void;
@@ -80,6 +82,7 @@ export function CallProvider({
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(false);
+  const [screenOn, setScreenOn] = useState(false);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -256,6 +259,27 @@ export function CallProvider({
     rebuild();
   }, [rebuild]);
 
+  const toggleScreen = useCallback(async () => {
+    const room = roomRef.current;
+    if (!room) return;
+    const next = !room.localParticipant.isScreenShareEnabled;
+    try {
+      await room.localParticipant.setScreenShareEnabled(next, {
+        audio: true,
+      });
+      setScreenOn(next);
+      rebuild();
+    } catch (e) {
+      // User cancelled the picker, or the OS denied screen-recording access.
+      setError(
+        e instanceof Error && /permission|denied|not allowed/i.test(e.message)
+          ? "Screen sharing needs Screen Recording permission (System Settings › Privacy)."
+          : "Couldn't start screen sharing.",
+      );
+      window.setTimeout(() => setError(null), 5000);
+    }
+  }, [rebuild]);
+
   // ---- Socket signals ----
   const markConnected = useCallback(() => {
     connectedRef.current = true;
@@ -318,6 +342,7 @@ export function CallProvider({
     room: roomRef.current,
     micOn,
     camOn,
+    screenOn,
     connected,
     error,
     startCall,
@@ -326,6 +351,7 @@ export function CallProvider({
     hangup,
     toggleMic,
     toggleCam,
+    toggleScreen,
     signals,
   };
 

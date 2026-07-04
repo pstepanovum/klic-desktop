@@ -8,7 +8,7 @@ import {
   displayNameFor,
   humanSize,
 } from "../util/format";
-import { Icon } from "../icons/Icon";
+import { Icon, type IconName } from "../icons/Icon";
 import { StickerPicker } from "./StickerPicker";
 
 interface Props {
@@ -49,6 +49,34 @@ function callEventText(m: Message): string {
   if (c.outcome === "failed") return `${type === "video" ? "Video" : "Voice"} call failed`;
   const dur = c.durationMs ? ` · ${callDur(c.durationMs)}` : "";
   return `${type === "video" ? "Video" : "Voice"} call${dur}`;
+}
+
+// Detect a rich-embeddable link (Spotify / YouTube) in message text.
+function detectEmbed(
+  text: string,
+): { kind: "spotify" | "youtube"; src: string } | null {
+  const sp = text.match(
+    /open\.spotify\.com\/(track|album|playlist|episode|show|artist)\/([A-Za-z0-9]+)/,
+  );
+  if (sp)
+    return { kind: "spotify", src: `https://open.spotify.com/embed/${sp[1]}/${sp[2]}` };
+  const yt = text.match(
+    /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/,
+  );
+  if (yt) return { kind: "youtube", src: `https://www.youtube.com/embed/${yt[1]}` };
+  return null;
+}
+
+function LinkEmbed({ embed }: { embed: { kind: string; src: string } }) {
+  return (
+    <iframe
+      className={embed.kind === "spotify" ? "embed-spotify" : "embed-youtube"}
+      src={embed.src}
+      loading="lazy"
+      allow="encrypted-media; clipboard-write; picture-in-picture"
+      title="embedded media"
+    />
+  );
 }
 
 // Render message text with clickable links.
@@ -93,27 +121,60 @@ function AttachmentView({
       />
     );
   }
-  if (att.kind === "VIDEO" || att.kind === "VIDEO_NOTE") {
+  const ct = att.contentType ?? "";
+  const name = (att.fileName ?? "").toLowerCase();
+  if (att.kind === "VIDEO" || att.kind === "VIDEO_NOTE" || ct.startsWith("video")) {
+    return <video className="bubble-img" src={att.url} controls preload="metadata" />;
+  }
+  if (att.kind === "VOICE" || ct.startsWith("audio") || name.endsWith(".mp3")) {
     return (
-      <video
-        className="bubble-img"
-        src={att.url}
-        controls
-        preload="metadata"
-      />
+      <div className="file-audio">
+        <span className="file-ic">
+          <Icon name="bold_volume_high" size={20} />
+        </span>
+        <div className="file-audio-body">
+          {att.fileName && <div className="file-name">{att.fileName}</div>}
+          <audio src={att.url} controls preload="metadata" />
+        </div>
+      </div>
     );
   }
-  if (att.kind === "VOICE") {
-    return <audio className="bubble-audio" src={att.url} controls preload="metadata" />;
-  }
+
+  const isPdf = ct.includes("pdf") || name.endsWith(".pdf");
+  const icon: IconName = isPdf
+    ? "bold_document"
+    : ct.includes("zip") || ct.includes("compressed")
+      ? "bold_folder"
+      : "bold_document";
+  const label = isPdf
+    ? "PDF document"
+    : ct.split("/")[1]?.toUpperCase() || "File";
+
   return (
-    <a className="bubble-file" href={att.url} target="_blank" rel="noreferrer">
-      <span>📎</span>
-      <span>
-        {att.fileName ?? att.kind.toLowerCase()}
-        {att.byteSize ? ` · ${humanSize(att.byteSize)}` : ""}
-      </span>
-    </a>
+    <div className="file-attach">
+      {isPdf && (
+        <embed
+          className="file-pdf"
+          src={`${att.url}#toolbar=0&navpanes=0`}
+          type="application/pdf"
+        />
+      )}
+      <a className="bubble-file" href={att.url} target="_blank" rel="noreferrer">
+        <span className="file-ic">
+          <Icon name={icon} size={22} />
+        </span>
+        <span className="file-meta">
+          <span className="file-name">{att.fileName ?? "File"}</span>
+          <span className="file-sub">
+            {label}
+            {att.byteSize ? ` · ${humanSize(att.byteSize)}` : ""}
+          </span>
+        </span>
+        <span className="file-dl">
+          <Icon name="download" size={18} />
+        </span>
+      </a>
+    </div>
   );
 }
 
@@ -333,6 +394,12 @@ export function ChatPane({
                 ) : (
                   m.body && <div className="bubble-text">{linkify(m.body)}</div>
                 )}
+                {!deleted &&
+                  m.body &&
+                  (() => {
+                    const emb = detectEmbed(m.body);
+                    return emb ? <LinkEmbed embed={emb} /> : null;
+                  })()}
                 {m.reactions && m.reactions.length > 0 && (
                   <div className="bubble-reactions">
                     {m.reactions.map((r) => (

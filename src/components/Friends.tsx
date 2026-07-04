@@ -1,13 +1,37 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
-import type { FriendRequest, PublicUser } from "../api/types";
+import type {
+  Attachment,
+  Conversation,
+  FriendRequest,
+  PublicUser,
+} from "../api/types";
 import { Avatar } from "./Avatar";
 import { Icon } from "../icons/Icon";
+import { humanSize } from "../util/format";
 
-export function Friends() {
+export function Friends({ conversations }: { conversations: Conversation[] }) {
   const [friends, setFriends] = useState<PublicUser[] | null>(null);
   const [requests, setRequests] = useState<FriendRequest[]>([]);
   const [selected, setSelected] = useState<PublicUser | null>(null);
+  const [media, setMedia] = useState<Attachment[] | null>(null);
+
+  // When a friend is selected, load the shared media from the DM with them.
+  useEffect(() => {
+    setMedia(null);
+    if (!selected) return;
+    const dm = conversations.find(
+      (c) => c.type === "DIRECT" && c.members.some((m) => m.id === selected.id),
+    );
+    if (!dm) {
+      setMedia([]);
+      return;
+    }
+    api
+      .conversationAttachments(dm.id)
+      .then((r) => setMedia(r.items))
+      .catch(() => setMedia([]));
+  }, [selected, conversations]);
 
   async function reload() {
     const [f, r] = await Promise.all([
@@ -142,6 +166,55 @@ export function Friends() {
                 Block
               </button>
             </div>
+
+            <div
+              className="settings-section-label"
+              style={{ paddingLeft: 0, marginTop: 26, textAlign: "left" }}
+            >
+              Shared media
+            </div>
+            {media === null ? (
+              <div className="list-empty">Loading…</div>
+            ) : media.length === 0 ? (
+              <div className="list-empty">No shared media yet.</div>
+            ) : (
+              <div className="media-grid">
+                {media.map((a) =>
+                  a.kind === "IMAGE" ? (
+                    <a
+                      key={a.id}
+                      className="media-cell"
+                      href={a.url}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <img src={a.url} alt="" loading="lazy" />
+                    </a>
+                  ) : (
+                    <a
+                      key={a.id}
+                      className="media-cell file"
+                      href={a.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      title={a.fileName ?? a.kind}
+                    >
+                      <Icon
+                        name={
+                          a.kind === "VIDEO"
+                            ? "bold_video"
+                            : a.kind === "VOICE"
+                              ? "bold_volume_high"
+                              : "bold_document"
+                        }
+                        size={22}
+                      />
+                      <span>{humanSize(a.byteSize)}</span>
+                    </a>
+                  ),
+                )}
+              </div>
+            )}
           </div>
         ) : (
           <div className="detail-empty">Select a friend to see their profile</div>
