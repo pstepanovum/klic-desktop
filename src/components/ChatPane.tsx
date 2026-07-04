@@ -465,14 +465,15 @@ export function ChatPane({
           <>
             <button
               className="icon-btn composer-btn"
-              title="Attach file"
+              title="Attach a photo or file"
               onClick={() => fileRef.current?.click()}
             >
-              <Icon name="media" size={22} />
+              <Icon name="paperclip" size={21} />
             </button>
             <input
               ref={fileRef}
               type="file"
+              accept="image/*,video/*,audio/*,*/*"
               hidden
               onChange={(e) => {
                 const f = e.target.files?.[0];
