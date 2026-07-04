@@ -242,8 +242,11 @@ textarea {
   width: 100%;
   max-width: 420px;
   padding: 0 32px 34px;
-  margin-bottom: 1vh;
+  margin-bottom: 12vh;
   text-align: center;
+}
+.auth.signup .auth-content {
+  margin-bottom: 8vh;
 }
 .auth-title {
   font-size: 30px;
