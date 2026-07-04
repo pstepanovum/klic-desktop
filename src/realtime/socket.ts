@@ -7,6 +7,8 @@ import type {
   TypingEvent,
   ReadEvent,
   PresenceEvent,
+  CallInvite,
+  CallSignal,
 } from "../api/types";
 
 export type ConnectionState = "connecting" | "connected" | "disconnected";
@@ -17,6 +19,14 @@ export interface RealtimeHandlers {
   onRead?: (e: ReadEvent) => void;
   onPresence?: (e: PresenceEvent) => void;
   onState?: (s: ConnectionState) => void;
+  // Calls (server -> client). All call actions are REST; these are signals.
+  onCallInvite?: (e: CallInvite) => void;
+  onCallAccept?: (e: CallSignal) => void;
+  onCallDecline?: (e: CallSignal) => void;
+  onCallCancel?: (e: CallSignal) => void;
+  onCallEnd?: (e: CallSignal) => void;
+  onCallParticipantJoined?: (e: CallSignal) => void;
+  onCallParticipantLeft?: (e: CallSignal) => void;
 }
 
 export class Realtime {
@@ -46,6 +56,20 @@ export class Realtime {
     socket.on("message:read", (e: ReadEvent) => this.handlers.onRead?.(e));
     socket.on("presence:update", (e: PresenceEvent) =>
       this.handlers.onPresence?.(e),
+    );
+
+    socket.on("call:invite", (e: CallInvite) => this.handlers.onCallInvite?.(e));
+    socket.on("call:accept", (e: CallSignal) => this.handlers.onCallAccept?.(e));
+    socket.on("call:decline", (e: CallSignal) =>
+      this.handlers.onCallDecline?.(e),
+    );
+    socket.on("call:cancel", (e: CallSignal) => this.handlers.onCallCancel?.(e));
+    socket.on("call:end", (e: CallSignal) => this.handlers.onCallEnd?.(e));
+    socket.on("call:participant-joined", (e: CallSignal) =>
+      this.handlers.onCallParticipantJoined?.(e),
+    );
+    socket.on("call:participant-left", (e: CallSignal) =>
+      this.handlers.onCallParticipantLeft?.(e),
     );
 
     this.socket = socket;

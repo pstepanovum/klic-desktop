@@ -71,7 +71,7 @@ export function AuthScreen({ onAuthed }: Props) {
     (isLogin || (displayName.trim().length > 0 && agreed));
 
   return (
-    <div className="auth">
+    <div className={`auth ${isLogin ? "login" : "signup"}`}>
       <img
         className="auth-art"
         src={isLogin ? "/auth-login.svg" : "/auth-signup.svg"}

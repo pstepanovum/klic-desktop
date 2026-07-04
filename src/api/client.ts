@@ -7,10 +7,19 @@ import {
   clearSession,
 } from "./tokens";
 import type {
+  ActiveCall,
   AuthResponse,
+  BlockedEntry,
+  CallStart,
+  CallToken,
   Conversation,
+  EmailStatus,
   Message,
+  NotificationPrefs,
+  Passkey,
+  ProfilePatch,
   SelfUser,
+  StarredPage,
 } from "./types";
 
 export class ApiError extends Error {
@@ -144,7 +153,100 @@ export const api = {
     });
   },
   me() {
-    return request<SelfUser>("/users/me");
+    return request<SelfUser>("/me");
+  },
+  changePassword(currentPassword: string, newPassword: string) {
+    return request<void>("/auth/change-password", {
+      method: "POST",
+      body: { currentPassword, newPassword },
+    });
+  },
+
+  // ---- Profile & settings ----
+  updateProfile(patch: ProfilePatch) {
+    return request<SelfUser>("/me", { method: "PATCH", body: patch });
+  },
+  avatarUpload(contentType: string, byteSize: number) {
+    return request<{
+      key: string;
+      uploadUrl: string;
+      expiresAt: string;
+      maxBytes: number;
+    }>("/me/avatar-upload", {
+      method: "POST",
+      body: { contentType, byteSize },
+    });
+  },
+  notificationPrefs() {
+    return request<NotificationPrefs>("/me/notification-prefs");
+  },
+  setNotificationPrefs(patch: Partial<NotificationPrefs>) {
+    return request<NotificationPrefs>("/me/notification-prefs", {
+      method: "PUT",
+      body: patch,
+    });
+  },
+  blocks() {
+    return request<BlockedEntry[]>("/blocks");
+  },
+  unblock(userId: string) {
+    return request<void>(`/blocks/${userId}`, { method: "DELETE" });
+  },
+  passkeys() {
+    return request<Passkey[]>("/me/passkeys");
+  },
+  deletePasskey(id: string) {
+    return request<void>(`/me/passkeys/${id}`, { method: "DELETE" });
+  },
+  starred(cursor?: string, limit = 50) {
+    return request<StarredPage>("/me/starred", { query: { cursor, limit } });
+  },
+  emailStatus() {
+    return request<EmailStatus>("/me/email/status");
+  },
+  setEmail(email: string, password?: string) {
+    return request<SelfUser>("/me/email", {
+      method: "POST",
+      body: { email, password },
+    });
+  },
+  removeEmail() {
+    return request<void>("/me/email", { method: "DELETE" });
+  },
+  report(category: string, details?: string) {
+    return request<{ id: string }>("/reports", {
+      method: "POST",
+      body: { category, details },
+    });
+  },
+
+  // ---- Calls ----
+  startCall(conversationId: string, kind: "AUDIO" | "VIDEO") {
+    return request<CallStart>("/calls", {
+      method: "POST",
+      body: { conversationId, kind },
+    });
+  },
+  callToken(callId: string) {
+    return request<CallToken>(`/calls/${callId}/token`, { method: "POST" });
+  },
+  callMediaJoined(callId: string) {
+    return request<void>(`/calls/${callId}/media-joined`, { method: "POST" });
+  },
+  callEnd(callId: string) {
+    return request<void>(`/calls/${callId}/end`, { method: "POST" });
+  },
+  callCancel(callId: string) {
+    return request<void>(`/calls/${callId}/cancel`, { method: "POST" });
+  },
+  callDecline(callId: string) {
+    return request<void>(`/calls/${callId}/decline`, { method: "POST" });
+  },
+  callFail(callId: string) {
+    return request<void>(`/calls/${callId}/fail`, { method: "POST" });
+  },
+  activeCall(conversationId: string) {
+    return request<ActiveCall>(`/conversations/${conversationId}/active-call`);
   },
 
   // ---- Conversations ----

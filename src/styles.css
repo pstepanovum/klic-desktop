@@ -108,6 +108,59 @@
   box-sizing: border-box;
 }
 
+/* ---------- Shell + custom titlebar ---------- */
+.root-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.root-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.titlebar {
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  /* Reserve room for the macOS traffic lights on the left. */
+  padding-left: 78px;
+  padding-right: 10px;
+  gap: 10px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.titlebar.app {
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+}
+.titlebar.auth {
+  background: transparent;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+}
+.titlebar.auth .titlebar-logo {
+  display: none;
+}
+.titlebar-logo {
+  height: 17px;
+  width: auto;
+  pointer-events: none;
+}
+.titlebar-spacer {
+  flex: 1;
+  align-self: stretch;
+}
+.titlebar-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 html,
 body,
 #root {
@@ -147,17 +200,25 @@ textarea {
   justify-content: center;
 }
 /* Oversized bleeding background artwork, top-centered (AuthScaffold art). */
+/* Oversized bleeding backdrop (mobile AuthScaffold language): the art is ~3.5x
+   the form's footprint and sits BEHIND the opaque sheet, so its lower half is
+   hidden by the sheet and it never crowds the inputs. Anchored near the top so
+   the top of the scene (HELP + characters) fills the exposed band. */
 .auth-art {
   position: absolute;
-  top: 3%;
+  top: -8%;
   left: 50%;
   transform: translateX(-50%);
-  height: 34%;
+  height: 138%;
   width: auto;
-  max-width: 74%;
-  opacity: 0.95;
+  max-width: none;
+  opacity: 0.98;
   pointer-events: none;
   user-select: none;
+}
+.auth.signup .auth-art {
+  height: 128%;
+  top: -6%;
 }
 /* The rounded "circle" sheet the form sits on, rising from the bottom. */
 .auth-sheet {
@@ -165,11 +226,14 @@ textarea {
   left: 50%;
   bottom: 0;
   transform: translateX(-50%);
-  width: 220%;
-  height: 62%;
+  width: 240%;
+  height: 66%;
   background: var(--sheet);
-  border-radius: 50% 50% 0 0 / 26% 26% 0 0;
-  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.08);
+  border-radius: 50% 50% 0 0 / 22% 22% 0 0;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.12);
+}
+.auth.signup .auth-sheet {
+  height: 72%;
 }
 .auth-content {
   position: relative;
@@ -177,8 +241,8 @@ textarea {
   align-self: flex-end;
   width: 100%;
   max-width: 420px;
-  padding: 0 32px 40px;
-  margin-bottom: 3vh;
+  padding: 0 32px 34px;
+  margin-bottom: 1vh;
   text-align: center;
 }
 .auth-title {
@@ -466,6 +530,328 @@ textarea {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+/* ---------- Nav rail ---------- */
+.nav-rail {
+  width: 60px;
+  flex-shrink: 0;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0;
+  gap: 4px;
+}
+.nav-rail .nav-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.nav-rail .nav-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+.nav-rail .nav-btn.active {
+  background: var(--bg-active);
+  color: var(--accent);
+}
+.nav-rail .nav-spacer {
+  flex: 1;
+}
+.nav-rail .nav-avatar {
+  cursor: pointer;
+}
+
+/* ---------- Settings ---------- */
+.settings {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+}
+.settings-menu {
+  width: 300px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  background: var(--bg-sidebar);
+  overflow-y: auto;
+  padding-bottom: 20px;
+}
+.settings-detail {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  background: var(--bg);
+}
+.settings-detail-inner {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 28px 32px 60px;
+}
+.settings-profile-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 22px 18px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.settings-profile-head:hover {
+  background: var(--bg-hover);
+}
+.settings-profile-head .big-avatar {
+  width: 60px;
+  height: 60px;
+  font-size: 22px;
+}
+.settings-profile-name {
+  font-size: 17px;
+  font-weight: 600;
+}
+.settings-profile-user {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.settings-section-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-faint);
+  padding: 18px 18px 6px;
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 12px 18px;
+  border: none;
+  background: none;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+}
+.settings-row:hover {
+  background: var(--bg-hover);
+}
+.settings-row.active {
+  background: var(--bg-active);
+}
+.settings-row .row-icon {
+  color: var(--text-muted);
+  display: inline-flex;
+}
+.settings-row.active .row-icon,
+.settings-row.active {
+  color: var(--text);
+}
+.settings-row .row-label {
+  flex: 1;
+}
+.settings-row .row-value {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.settings-row.danger,
+.settings-row.danger .row-icon {
+  color: var(--danger);
+}
+.settings-h {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+.settings-sub {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin: 0 0 22px;
+}
+.field-group {
+  margin-bottom: 22px;
+}
+.field-group > label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.text-input,
+.text-area,
+.select-input {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-input);
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+}
+.text-input:focus,
+.text-area:focus,
+.select-input:focus {
+  border-color: var(--accent);
+}
+.text-area {
+  resize: vertical;
+  min-height: 64px;
+}
+.btn-primary {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+.btn-primary:disabled {
+  opacity: 0.5;
+}
+.btn-secondary {
+  padding: 10px 18px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 14px;
+}
+.btn-secondary:hover {
+  background: var(--bg-hover);
+}
+.toggle-row,
+.picker-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--border);
+}
+.toggle-row .tr-label,
+.picker-row .pr-label {
+  font-size: 14px;
+}
+.toggle-row .tr-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.switch {
+  width: 44px;
+  height: 26px;
+  border-radius: 13px;
+  background: var(--surface-raised);
+  border: none;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.switch.on {
+  background: var(--accent);
+}
+.switch .knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s;
+}
+.switch.on .knob {
+  transform: translateX(18px);
+}
+.list-empty {
+  color: var(--text-faint);
+  font-size: 13px;
+  padding: 30px 0;
+  text-align: center;
+}
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--bg-active);
+  font-size: 13px;
+}
+.chip button {
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+.info-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.qr-canvas {
+  display: block;
+  margin: 20px auto;
+  border-radius: 14px;
+  background: #fff;
+  padding: 16px;
+}
+.saved-item {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.saved-item .si-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 3px;
+}
+.form-note {
+  font-size: 13px;
+  margin-top: 10px;
+}
+.form-note.ok {
+  color: var(--read-green);
+}
+.form-note.err {
+  color: var(--danger);
+}
+.big-avatar {
+  position: relative;
+}
+.avatar-edit {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
 /* ---------- Chat pane ---------- */

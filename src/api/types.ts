@@ -1,6 +1,8 @@
 // Wire shapes mirror the Klic backend (/api/v1). Field names match the server
 // JSON exactly so payloads decode verbatim.
 
+export type Visibility = "EVERYBODY" | "FRIENDS" | "NOBODY";
+
 export interface SelfUser {
   id: string;
   username: string;
@@ -10,7 +12,118 @@ export interface SelfUser {
   links: string[];
   email: string | null;
   emailVerified: boolean;
+  showLastSeen?: boolean;
+  deleteIfAwayMonths?: number | null;
+  lastSeenVisibility?: Visibility;
+  aboutVisibility?: Visibility;
+  avatarVisibility?: Visibility;
+  linksVisibility?: Visibility;
+  groupsVisibility?: Visibility;
+  statusVisibility?: Visibility;
+  silenceUnknownCallers?: boolean;
   readReceipts: boolean;
+}
+
+// Subset of PATCH /me fields the desktop client edits.
+export interface ProfilePatch {
+  displayName?: string;
+  username?: string;
+  about?: string | null;
+  links?: string[] | null;
+  avatarKey?: string | null;
+  lastSeenVisibility?: Visibility;
+  aboutVisibility?: Visibility;
+  avatarVisibility?: Visibility;
+  linksVisibility?: Visibility;
+  groupsVisibility?: Visibility;
+  statusVisibility?: Visibility;
+  silenceUnknownCallers?: boolean;
+  readReceipts?: boolean;
+  deleteIfAwayMonths?: number | null;
+}
+
+export interface NotificationPrefs {
+  messages: boolean;
+  groups: boolean;
+  calls: boolean;
+  friendRequests: boolean;
+}
+
+export interface BlockedEntry {
+  user: PublicUser;
+  blockedAt: string;
+}
+
+export interface Passkey {
+  id: string;
+  label: string | null;
+  createdAt: string;
+  lastUsedAt: string | null;
+}
+
+export interface StarredMessage extends Message {
+  starred?: boolean;
+  sender?: PublicUser;
+  conversation?: { id: string; type: ConversationType; title?: string };
+}
+
+export interface StarredPage {
+  items: StarredMessage[];
+  nextCursor: string | null;
+}
+
+export interface EmailStatus {
+  email: string | null;
+  emailVerified: boolean;
+}
+
+// ---- Calls ----
+export type CallKind = "AUDIO" | "VIDEO";
+export type CallStatus = "RINGING" | "ANSWERING" | "ONGOING" | "ENDED";
+
+export interface CallInvite {
+  callId: string;
+  conversationId: string;
+  roomName: string;
+  livekitUrl: string;
+  kind: CallKind;
+  from: { id: string; username: string; displayName: string };
+  conversationType: ConversationType;
+  conversationTitle: string;
+  participantCount: number;
+  silenced?: boolean;
+}
+
+// POST /calls response = CallInvite + token + status.
+export interface CallStart extends CallInvite {
+  token: string;
+  status: CallStatus;
+}
+
+export interface CallToken {
+  callId: string;
+  roomName: string;
+  livekitUrl: string;
+  kind: CallKind;
+  token: string;
+}
+
+export interface ActiveCall {
+  callId: string;
+  conversationId: string;
+  roomName: string;
+  livekitUrl: string;
+  kind: CallKind;
+  status: CallStatus;
+  startedBy: string;
+  participants: { userId: string; joinedAt: string | null }[];
+}
+
+export interface CallSignal {
+  callId: string;
+  userId?: string;
+  reason?: string;
+  outcome?: string;
 }
 
 export interface PublicUser {
