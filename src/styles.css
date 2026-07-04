@@ -1,62 +1,104 @@
-:root {
-  --accent: #6366f1;
-  --accent-hover: #4f46e5;
-  --accent-contrast: #ffffff;
-  --danger: #ef4444;
+/* ---------- TikTok Sans (matches iOS/Android) ---------- */
+@font-face {
+  font-family: "TikTok Sans";
+  src: url("/fonts/TikTokSans-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "TikTok Sans";
+  src: url("/fonts/TikTokSans-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "TikTok Sans";
+  src: url("/fonts/TikTokSans-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: "TikTok Sans";
+  src: url("/fonts/TikTokSans-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "TikTok Sans";
+  src: url("/fonts/TikTokSans-Black.ttf") format("truetype");
+  font-weight: 900;
+  font-display: swap;
+}
 
-  /* Light theme (default) */
-  --bg: #ffffff;
-  --bg-elevated: #f7f7f9;
-  --bg-sidebar: #f2f3f7;
-  --bg-input: #ffffff;
-  --bg-hover: #e9ebf2;
-  --bg-active: #e0e3f0;
-  --bubble-in: #eceef3;
-  --bubble-out: #6366f1;
+:root {
+  /* Klic brand — same in both schemes (KlicColor.swift) */
+  --accent: #ed122b; /* KlicColor.primary */
+  --accent-hover: #c80e24;
+  --cta-red: #d90429; /* AuthStyle.ctaRed */
+  --accent-contrast: #ffffff;
+  --danger: #fa052e; /* KlicColor.danger */
+  --read-green: #25d366; /* KlicColor.read */
+
+  /* Light scheme — grayscale surfaces (KlicColor light) */
+  --bg: #f5f5f5; /* background */
+  --bg-elevated: #ffffff; /* surface */
+  --bg-sidebar: #f5f5f5;
+  --bg-input: #f2f2f2; /* AuthStyle.fieldFill light */
+  --bg-hover: #ececec;
+  --bg-active: #e5e5e5; /* surfaceRaised light */
+  --surface-raised: #e5e5e5;
+  --bubble-in: #e5e5e5; /* surfaceRaised */
+  --bubble-out: #ed122b; /* default Klic-red bubble */
   --bubble-out-text: #ffffff;
-  --text: #17181c;
-  --text-muted: #6b7280;
-  --text-faint: #9ca3af;
-  --border: #e3e5ec;
+  --text: #111111; /* textPrimary light */
+  --text-muted: #666666; /* textMuted light */
+  --text-faint: #b2b2b2; /* AuthStyle.smallText */
+  --field-hint: #c7c7c7;
+  --border: #e2e2e2;
+  --sheet: #ffffff; /* AuthStyle.circleFill light */
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --unread-bg: #6366f1;
   color-scheme: light;
 }
 
 :root[data-theme="dark"] {
-  --bg: #16171b;
-  --bg-elevated: #1d1f24;
-  --bg-sidebar: #101114;
-  --bg-input: #24262c;
-  --bg-hover: #24262c;
-  --bg-active: #2c2f37;
-  --bubble-in: #24262c;
-  --bubble-out: #6366f1;
+  --bg: #0d0d0d; /* background dark */
+  --bg-elevated: #1a1a1a; /* surface dark */
+  --bg-sidebar: #0d0d0d;
+  --bg-input: #202020; /* AuthStyle.fieldFill dark */
+  --bg-hover: #1f1f1f;
+  --bg-active: #2d2d2d; /* surfaceRaised dark */
+  --surface-raised: #2d2d2d;
+  --bubble-in: #2d2d2d;
+  --bubble-out: #ed122b;
   --bubble-out-text: #ffffff;
-  --text: #e8eaed;
-  --text-muted: #9aa0ab;
-  --text-faint: #6b7280;
-  --border: #2a2c33;
+  --text: #f2f2f2; /* textPrimary dark */
+  --text-muted: #878787; /* textMuted dark */
+  --text-faint: #b2b2b2;
+  --field-hint: #6a6a6a;
+  --border: #262626;
+  --sheet: #1a1a1a; /* AuthStyle.circleFill dark = surface */
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-  --unread-bg: #6366f1;
   color-scheme: dark;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #16171b;
-    --bg-elevated: #1d1f24;
-    --bg-sidebar: #101114;
-    --bg-input: #24262c;
-    --bg-hover: #24262c;
-    --bg-active: #2c2f37;
-    --bubble-in: #24262c;
-    --bubble-out: #6366f1;
+    --bg: #0d0d0d;
+    --bg-elevated: #1a1a1a;
+    --bg-sidebar: #0d0d0d;
+    --bg-input: #202020;
+    --bg-hover: #1f1f1f;
+    --bg-active: #2d2d2d;
+    --surface-raised: #2d2d2d;
+    --bubble-in: #2d2d2d;
+    --bubble-out: #ed122b;
     --bubble-out-text: #ffffff;
-    --text: #e8eaed;
-    --text-muted: #9aa0ab;
-    --text-faint: #6b7280;
-    --border: #2a2c33;
+    --text: #f2f2f2;
+    --text-muted: #878787;
+    --text-faint: #b2b2b2;
+    --field-hint: #6a6a6a;
+    --border: #262626;
+    --sheet: #1a1a1a;
     --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
     color-scheme: dark;
   }
@@ -74,8 +116,8 @@ body,
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
-    Arial, sans-serif;
+  font-family: "TikTok Sans", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif;
   font-size: 14px;
   color: var(--text);
   background: var(--bg);
@@ -95,103 +137,190 @@ textarea {
   user-select: text;
 }
 
-/* ---------- Auth screens ---------- */
+/* ---------- Auth screens (mirrors AuthScaffold / AuthStyle) ---------- */
 .auth {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: relative;
   height: 100%;
-  background: var(--bg-sidebar);
-}
-.auth-card {
-  width: 340px;
+  overflow: hidden;
   background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 32px 28px;
-  box-shadow: var(--shadow);
+  display: flex;
+  justify-content: center;
 }
-.auth-logo {
+/* Oversized bleeding background artwork, top-centered (AuthScaffold art). */
+.auth-art {
+  position: absolute;
+  top: 3%;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 34%;
+  width: auto;
+  max-width: 74%;
+  opacity: 0.95;
+  pointer-events: none;
+  user-select: none;
+}
+/* The rounded "circle" sheet the form sits on, rising from the bottom. */
+.auth-sheet {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 220%;
+  height: 62%;
+  background: var(--sheet);
+  border-radius: 50% 50% 0 0 / 26% 26% 0 0;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.08);
+}
+.auth-content {
+  position: relative;
+  z-index: 1;
+  align-self: flex-end;
+  width: 100%;
+  max-width: 420px;
+  padding: 0 32px 40px;
+  margin-bottom: 3vh;
+  text-align: center;
+}
+.auth-title {
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: -0.5px;
+  margin: 0;
+  color: var(--text);
+}
+.auth-subtitle {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin: 6px 0 0;
+}
+.auth-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 26px;
+  text-align: left;
+}
+/* Capsule input with optional @ prefix. */
+.pill-field {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 22px;
-}
-.auth-logo img {
-  width: 36px;
-  height: 36px;
-  border-radius: 9px;
-}
-.auth-logo h1 {
-  font-size: 20px;
-  margin: 0;
-}
-.auth h2 {
-  font-size: 16px;
-  margin: 0 0 16px;
-  font-weight: 600;
-}
-.field {
-  margin-bottom: 14px;
-}
-.field label {
-  display: block;
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-bottom: 6px;
-}
-.field input {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 9px;
   background: var(--bg-input);
-  color: var(--text);
-  font-size: 14px;
-  outline: none;
+  border-radius: 999px;
+  padding: 0 18px;
+  height: 52px;
 }
-.field input:focus {
-  border-color: var(--accent);
+.pill-field .prefix {
+  color: var(--field-hint);
+  font-size: 16px;
+  margin-right: 4px;
 }
-.btn {
-  width: 100%;
-  padding: 11px;
+.pill-field input {
+  flex: 1;
   border: none;
-  border-radius: 9px;
-  background: var(--accent);
-  color: var(--accent-contrast);
-  font-size: 14px;
-  font-weight: 600;
-  transition: background 0.15s;
+  background: transparent;
+  outline: none;
+  color: var(--text);
+  font-size: 15px;
+  height: 100%;
 }
-.btn:hover:not(:disabled) {
-  background: var(--accent-hover);
+.pill-field input::placeholder {
+  color: var(--field-hint);
 }
-.btn:disabled {
-  opacity: 0.55;
+/* Red capsule CTA (AuthStyle.ctaRed). */
+.pill-btn {
+  width: 100%;
+  height: 52px;
+  border: none;
+  border-radius: 999px;
+  background: var(--cta-red);
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 500;
+  margin-top: 20px;
+  transition: filter 0.15s;
+}
+.pill-btn:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+.pill-btn:disabled {
+  background: #b2b2b2;
   cursor: default;
 }
-.auth-switch {
-  margin-top: 16px;
-  text-align: center;
-  font-size: 13px;
-  color: var(--text-muted);
-}
-.auth-switch button {
+.auth-link {
   background: none;
   border: none;
-  color: var(--accent);
-  font-weight: 600;
-  font-size: 13px;
+  color: var(--text-faint);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: underline;
   padding: 0;
+  margin-top: 18px;
 }
-.form-error {
-  background: rgba(239, 68, 68, 0.1);
-  color: var(--danger);
-  border-radius: 8px;
-  padding: 9px 12px;
+.auth-forgot {
+  display: block;
+  margin: 10px 2px 0 auto;
+  background: none;
+  border: none;
+  color: var(--text-faint);
   font-size: 13px;
-  margin-bottom: 14px;
+  font-weight: 500;
+}
+.auth-error {
+  color: var(--danger);
+  font-size: 13px;
+  margin-top: 12px;
+}
+/* Password strength meter (SignUpView.strengthBar). */
+.strength {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px 0;
+}
+.strength .seg {
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  transition: background 0.25s;
+}
+.strength .label {
+  width: 46px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 500;
+}
+/* Privacy checkbox row (KlicCheckbox). */
+.privacy-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: left;
+}
+.privacy-box {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1.5px solid var(--field-hint);
+  background: transparent;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+}
+.privacy-box.on {
+  background: var(--cta-red);
+  border-color: var(--cta-red);
+}
+.privacy-row a {
+  color: var(--accent);
+  cursor: pointer;
 }
 
 /* ---------- App shell ---------- */
@@ -325,7 +454,7 @@ textarea {
   flex: 1;
 }
 .unread-badge {
-  background: var(--unread-bg);
+  background: var(--accent);
   color: #fff;
   border-radius: 11px;
   min-width: 20px;
@@ -403,7 +532,7 @@ textarea {
 .bubble {
   max-width: min(64%, 520px);
   padding: 8px 12px;
-  border-radius: 16px;
+  border-radius: 18px;
   background: var(--bubble-in);
   color: var(--text);
   position: relative;
@@ -438,7 +567,7 @@ textarea {
   display: block;
   max-width: 320px;
   max-height: 320px;
-  border-radius: 10px;
+  border-radius: 12px;
   margin: 2px 0;
   cursor: pointer;
   object-fit: cover;
@@ -448,7 +577,7 @@ textarea {
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
-  border-radius: 10px;
+  border-radius: 12px;
   background: rgba(127, 127, 127, 0.14);
   color: inherit;
   text-decoration: none;
@@ -459,7 +588,7 @@ textarea {
   font-size: 11px;
 }
 .tick.read {
-  color: #93c5fd;
+  color: var(--read-green);
 }
 
 /* ---------- Composer ---------- */
@@ -476,21 +605,21 @@ textarea {
   resize: none;
   max-height: 140px;
   min-height: 20px;
-  padding: 10px 14px;
-  border: 1px solid var(--border);
-  border-radius: 20px;
+  padding: 11px 16px;
+  border: none;
+  border-radius: 22px;
   background: var(--bg-input);
   color: var(--text);
   font-size: 14px;
   line-height: 1.35;
   outline: none;
 }
-.composer textarea:focus {
-  border-color: var(--accent);
+.composer textarea::placeholder {
+  color: var(--field-hint);
 }
 .send-btn {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   border: none;
   background: var(--accent);
@@ -502,7 +631,7 @@ textarea {
   flex-shrink: 0;
 }
 .send-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
 }
 
 /* ---------- Misc ---------- */
@@ -526,16 +655,6 @@ textarea {
   to {
     transform: rotate(360deg);
   }
-}
-.conn-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--text-faint);
-  flex-shrink: 0;
-}
-.conn-dot.online {
-  background: #22c55e;
 }
 ::-webkit-scrollbar {
   width: 9px;
