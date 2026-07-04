@@ -1,0 +1,74 @@
+// Socket.IO realtime connection. Connects to the API origin (not /api/v1) with
+// the access token in the handshake, and exposes typed subscribe helpers.
+import { io, Socket } from "socket.io-client";
+import { SOCKET_URL } from "../config";
+import type {
+  Message,
+  TypingEvent,
+  ReadEvent,
+  PresenceEvent,
+} from "../api/types";
+
+export type ConnectionState = "connecting" | "connected" | "disconnected";
+
+export interface RealtimeHandlers {
+  onMessage?: (m: Message) => void;
+  onTyping?: (e: TypingEvent) => void;
+  onRead?: (e: ReadEvent) => void;
+  onPresence?: (e: PresenceEvent) => void;
+  onState?: (s: ConnectionState) => void;
+}
+
+export class Realtime {
+  private socket: Socket | null = null;
+  private handlers: RealtimeHandlers = {};
+
+  connect(token: string, handlers: RealtimeHandlers): void {
+    this.handlers = handlers;
+    this.disconnect();
+
+    this.handlers.onState?.("connecting");
+    const socket = io(SOCKET_URL, {
+      transports: ["websocket"],
+      auth: { token },
+      extraHeaders: { Authorization: `Bearer ${token}` },
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+    });
+
+    socket.on("connect", () => this.handlers.onState?.("connected"));
+    socket.on("disconnect", () => this.handlers.onState?.("disconnected"));
+    socket.on("connect_error", () => this.handlers.onState?.("disconnected"));
+
+    socket.on("message:new", (m: Message) => this.handlers.onMessage?.(m));
+    socket.on("typing", (e: TypingEvent) => this.handlers.onTyping?.(e));
+    socket.on("message:read", (e: ReadEvent) => this.handlers.onRead?.(e));
+    socket.on("presence:update", (e: PresenceEvent) =>
+      this.handlers.onPresence?.(e),
+    );
+
+    this.socket = socket;
+  }
+
+  disconnect(): void {
+    if (this.socket) {
+      this.socket.removeAllListeners();
+      this.socket.disconnect();
+      this.socket = null;
+    }
+  }
+
+  // Client -> server events (the server accepts exactly these three).
+  emitTyping(conversationId: string, isTyping: boolean): void {
+    this.socket?.emit("typing", { conversationId, isTyping });
+  }
+  markRead(conversationId: string): void {
+    this.socket?.emit("message:read", { conversationId });
+  }
+  markDelivered(conversationId: string): void {
+    this.socket?.emit("message:delivered", { conversationId });
+  }
+}
+
+export const realtime = new Realtime();
