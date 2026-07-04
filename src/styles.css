@@ -206,10 +206,10 @@ textarea {
    the top of the scene (HELP + characters) fills the exposed band. */
 .auth-art {
   position: absolute;
-  top: -2%;
+  top: -8%;
   left: 50%;
   transform: translateX(-50%);
-  height: 70%;
+  height: 105%;
   width: auto;
   max-width: none;
   opacity: 0.98;
@@ -217,8 +217,8 @@ textarea {
   user-select: none;
 }
 .auth.signup .auth-art {
-  height: 62%;
-  top: -1%;
+  height: 93%;
+  top: -7%;
 }
 /* The rounded "circle" sheet the form sits on, rising from the bottom. */
 .auth-sheet {
