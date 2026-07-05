@@ -9,6 +9,7 @@ import { Notifications } from "./notifications";
 import { Passkeys } from "./passkeys";
 import { SavedMessages } from "./saved-messages";
 import { QrCode } from "./qr-code";
+import { AboutUpdates } from "./about-updates";
 import {
   ChatThemePage,
   DataStorage,
@@ -28,7 +29,8 @@ type PageId =
   | "qr"
   | "saved"
   | "encryption"
-  | "report";
+  | "report"
+  | "about";
 
 const MENU: { id: PageId; icon: IconName; label: string }[] = [
   { id: "profile", icon: "tab_user", label: "Edit profile" },
@@ -42,6 +44,7 @@ const MENU: { id: PageId; icon: IconName; label: string }[] = [
   { id: "saved", icon: "star_solid", label: "Saved messages" },
   { id: "encryption", icon: "passcode", label: "Encryption" },
   { id: "report", icon: "report", label: "Report a problem" },
+  { id: "about", icon: "update", label: "About & Updates" },
 ];
 
 interface Props {
@@ -79,6 +82,8 @@ export function Settings({ self, theme, onSetTheme, onUpdated, onLogout }: Props
         return <EncryptionInfo />;
       case "report":
         return <ReportProblem />;
+      case "about":
+        return <AboutUpdates />;
     }
   }
 

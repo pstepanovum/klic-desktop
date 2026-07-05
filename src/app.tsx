@@ -15,6 +15,7 @@ import { Workspace } from "./workspace";
 import { CallProvider } from "./calls/call-provider";
 import { loadTheme, applyTheme, nextTheme, type Theme } from "./util/theme";
 import { applyAuthWindow, applyAppWindow } from "./util/window";
+import { checkForUpdate, installUpdate, type UpdateInfo } from "./util/updater";
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(() => loadSession());
@@ -23,10 +24,32 @@ export default function App() {
   );
   const [theme, setTheme] = useState<Theme>(() => loadTheme());
   const [search, setSearch] = useState("");
+  const [update, setUpdate] = useState<UpdateInfo | null>(null);
+  const [updating, setUpdating] = useState(false);
   const authed = !!session && !!self;
   const prevAuthed = useRef<boolean | null>(null);
 
   useEffect(() => applyTheme(theme), [theme]);
+
+  // One throttled auto-check for updates on launch (packaged app only).
+  useEffect(() => {
+    const KEY = "klic.lastUpdateCheck";
+    const last = Number(localStorage.getItem(KEY) || 0);
+    if (Date.now() - last < 6 * 60 * 60 * 1000) return; // at most every 6h
+    localStorage.setItem(KEY, String(Date.now()));
+    checkForUpdate()
+      .then((info) => info && setUpdate(info))
+      .catch(() => {});
+  }, []);
+
+  async function runUpdate(info: UpdateInfo) {
+    setUpdating(true);
+    try {
+      await installUpdate(info);
+    } catch {
+      setUpdating(false);
+    }
+  }
 
   // Resize the native window when moving between auth and the app.
   useEffect(() => {
@@ -87,6 +110,25 @@ export default function App() {
           <AuthScreen onAuthed={onAuthed} />
         )}
       </div>
+      {update && (
+        <div className="update-banner">
+          <span>
+            {updating
+              ? `Updating to ${update.version}…`
+              : `Klic ${update.version} is available.`}
+          </span>
+          {!updating && (
+            <div className="update-banner-actions">
+              <button className="ub-btn" onClick={() => runUpdate(update)}>
+                Update &amp; restart
+              </button>
+              <button className="ub-btn ghost" onClick={() => setUpdate(null)}>
+                Later
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

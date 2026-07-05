@@ -27,3 +27,9 @@ pnpm-debug.log*
 
 # TypeScript
 *.tsbuildinfo
+
+# Updater signing keys (NEVER commit)
+*.key
+*.key.pub
+signing.key
+signing.password

@@ -1,7 +1,7 @@
 {
   "name": "klic-desktop",
   "private": true,
-  "version": "0.6.3",
+  "version": "0.6.4",
   "type": "module",
   "description": "Klic desktop client",
   "scripts": {
@@ -13,7 +13,9 @@
   "dependencies": {
     "@tauri-apps/api": "^2.1.1",
     "@tauri-apps/plugin-http": "^2.5.9",
+    "@tauri-apps/plugin-process": "^2.3.1",
     "@tauri-apps/plugin-shell": "^2.2.0",
+    "@tauri-apps/plugin-updater": "^2.10.1",
     "@types/qrcode": "^1.5.6",
     "livekit-client": "^2.20.0",
     "qrcode": "^1.5.4",

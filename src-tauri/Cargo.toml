@@ -1,6 +1,6 @@
 [package]
 name = "klic-desktop"
-version = "0.6.3"
+version = "0.6.4"
 description = "Klic desktop client"
 authors = ["Klic"]
 edition = "2021"
@@ -17,6 +17,8 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = [] }
 tauri-plugin-shell = "2"
 tauri-plugin-http = "2"
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
