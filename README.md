@@ -156,3 +156,7 @@ src-tauri/           Rust shell (Tauri config, icons, entry point)
   emits `typing`, `message:read`, `message:delivered`.
 
 See [ROADMAP.md](./ROADMAP.md) for what's intentionally out of the first slice.
+
+## License
+
+Klic Desktop is released under the [MIT License](LICENSE).
