@@ -1,0 +1,102 @@
+name: Windows installer
+
+# Builds the WINDOWS installer (.exe + .msi) only, signs it for the auto-updater,
+# and attaches it to an existing release. The macOS .dmg is built locally on a Mac
+# and uploaded from there, so this workflow NEVER builds macOS (that would need the
+# 10x-minute macOS runner). It just adds the Windows half to a release the Mac made.
+#
+# Triggers:
+#   - release: published  -> runs automatically the moment a release is published
+#     (i.e. after the Mac created the tag + uploaded the .dmg). One run per release.
+#   - workflow_dispatch    -> manual, to build the first one or re-run for a tag.
+#
+# Minutes: single Windows job (2x multiplier), hard-capped at 18 min, Rust + npm
+# cached so repeat runs are fast. First (cold-cache) run is the slowest.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag to attach the Windows build to (default: v<package.json version>)"
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: windows-installer-${{ github.event.inputs.release_tag || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    timeout-minutes: 18
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Rust (MSVC)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Cache Rust build
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Install JS deps
+        run: npm ci
+
+      - name: Resolve target release tag
+        id: tag
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            TAG="${{ github.event.release.tag_name }}"
+          elif [ -n "${{ github.event.inputs.release_tag }}" ]; then
+            TAG="${{ github.event.inputs.release_tag }}"
+          else
+            TAG="v$(node -p "require('./package.json').version")"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Target release: $TAG"
+
+      - name: Build signed Windows installer
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: npm run tauri build
+
+      - name: Attach installer + merge Windows into latest.json
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          set -euo pipefail
+          NSIS=$(ls src-tauri/target/release/bundle/nsis/*-setup.exe | head -n1)
+          MSI=$(ls src-tauri/target/release/bundle/msi/*.msi | head -n1 || true)
+          echo "NSIS: $NSIS"
+          echo "MSI:  ${MSI:-<none>}"
+
+          # Pull the existing feed (has the Mac's darwin entry) and add windows.
+          gh release download "$TAG" -p latest.json -O latest.json || echo '{}' > latest.json
+          WIN_SIG="$(cat "$NSIS.sig")" \
+          WIN_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/$(basename "$NSIS")" \
+          APP_VERSION="$(node -p "require('./package.json').version")" \
+            node scripts/ci/update-latest-json.mjs
+
+          # Upload installer(s), the updater .sig, and the merged feed (replace in place).
+          gh release upload "$TAG" "$NSIS" "$NSIS.sig" latest.json --clobber
+          if [ -n "${MSI:-}" ]; then gh release upload "$TAG" "$MSI" --clobber; fi
+
+          echo "Attached Windows build to $TAG and updated latest.json."
