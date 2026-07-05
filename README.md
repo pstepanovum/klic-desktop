@@ -31,6 +31,47 @@ existing Klic backend (Fastify REST + Socket.IO); this repo contains no server.
   mobile apps), TikTok Sans typography, Klic-red branding, and light/dark/system
   theming.
 
+## Installing
+
+Download the latest installer from the
+[Releases](https://github.com/pstepanovum/klic-desktop/releases/latest) page.
+Klic isn't code-signed with a paid Apple Developer or Windows certificate yet, so
+the **first launch needs one manual "allow" step**. It's a one-time action per
+install — after that the app and its auto-updates open normally. The prompts don't
+mean anything is wrong with the app; they only mean it isn't notarized yet.
+
+### macOS (Apple Silicon)
+
+1. Open **`Klic_<version>_aarch64.dmg`** and **drag Klic into the Applications
+   folder.** Don't launch it from the disk-image window — macOS blocks apps run
+   directly off a mounted image (that's the "This item is on the disk image…"
+   warning).
+2. Open **Klic** from Applications. macOS says it "could not verify" the
+   developer — click **Done** (do *not* click Move to Trash).
+3. Open **System Settings → Privacy & Security**, scroll to the Security section,
+   and next to "Klic was blocked…" click **Open Anyway**, then confirm with
+   Touch ID or your password.
+4. Klic opens and won't ask again.
+
+If it still refuses (e.g. says the app is "damaged"), clear the download-quarantine
+flag in Terminal, then open normally:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/Klic.app
+```
+
+### Windows
+
+1. Run **`Klic_<version>_x64-setup.exe`** (or the `.msi`).
+2. If SmartScreen shows "Windows protected your PC", click **More info → Run
+   anyway** — the publisher shows as unverified because the build isn't
+   code-signed yet.
+3. Follow the installer; auto-updates apply the same way.
+
+> Removing these prompts entirely requires signing certificates (Apple Developer,
+> ~$99/yr, for notarization; a Windows Authenticode certificate). Until then the
+> one-time "Open Anyway" / "Run anyway" step above is the way in.
+
 ## Prerequisites
 
 - **Node.js** 18+ (developed on 24) and npm.
