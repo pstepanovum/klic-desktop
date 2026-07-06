@@ -37,6 +37,8 @@ export interface RealtimeHandlers {
 export class Realtime {
   private socket: Socket | null = null;
   private handlers: RealtimeHandlers = {};
+  // Window-visibility state → server presence. Online = a foregrounded (visible) client.
+  private active = true;
 
   connect(token: string, handlers: RealtimeHandlers): void {
     this.handlers = handlers;
@@ -52,7 +54,11 @@ export class Realtime {
       reconnectionDelayMax: 5000,
     });
 
-    socket.on("connect", () => this.handlers.onState?.("connected"));
+    socket.on("connect", () => {
+      this.handlers.onState?.("connected");
+      // Report our current window-visibility state on every (re)connect.
+      socket.emit("presence:active", { active: this.active });
+    });
     socket.on("disconnect", () => this.handlers.onState?.("disconnected"));
     socket.on("connect_error", () => this.handlers.onState?.("disconnected"));
 
@@ -99,6 +105,12 @@ export class Realtime {
   }
   markDelivered(conversationId: string): void {
     this.socket?.emit("message:delivered", { conversationId });
+  }
+  // Report window fore/background so the server drives online presence (a hidden/
+  // minimized window should not keep the user online).
+  setActive(active: boolean): void {
+    this.active = active;
+    this.socket?.emit("presence:active", { active });
   }
 }
 
