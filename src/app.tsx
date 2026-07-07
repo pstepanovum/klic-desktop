@@ -42,6 +42,16 @@ export default function App() {
       .catch(() => {});
   }, []);
 
+  // Window visibility → presence: a hidden/minimized window shouldn't keep the user
+  // showing online. Report the current state, and on every visibility change.
+  useEffect(() => {
+    const report = () =>
+      realtime.setActive(document.visibilityState === "visible");
+    report();
+    document.addEventListener("visibilitychange", report);
+    return () => document.removeEventListener("visibilitychange", report);
+  }, []);
+
   async function runUpdate(info: UpdateInfo) {
     setUpdating(true);
     try {

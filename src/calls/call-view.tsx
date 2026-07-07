@@ -3,6 +3,7 @@ import { Icon } from "../icons/icon";
 import { useCall } from "./call-provider";
 import { CallTile } from "./call-tile";
 import { gridColumns } from "./room";
+import { ScreenSharePicker } from "./screen-share-picker";
 
 function labelFor(p: Participant): string {
   return p.name || p.identity;
@@ -108,6 +109,8 @@ export function CallView() {
           <Icon name="bold_call_slash" size={24} />
         </button>
       </div>
+
+      <ScreenSharePicker />
     </div>
   );
 }

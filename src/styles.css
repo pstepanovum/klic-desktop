@@ -1850,6 +1850,89 @@ textarea {
   margin-top: 28px;
 }
 
+/* ---------- Screen-share source picker ---------- */
+.ss-picker {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.ss-picker-card {
+  background: var(--bg-elevated);
+  color: var(--text);
+  border-radius: 20px;
+  padding: 24px 24px 18px;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  text-align: center;
+}
+.ss-picker-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+.ss-picker-sub {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-top: 6px;
+  line-height: 1.4;
+}
+.ss-picker-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 20px 0 8px;
+}
+.ss-source {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 18px 10px;
+  border: none;
+  border-radius: 14px;
+  background: var(--bg-input);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.ss-source:hover {
+  background: var(--bg-hover);
+}
+.ss-source-icon {
+  display: inline-flex;
+  color: var(--accent);
+}
+.ss-source-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+.ss-source-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+.ss-picker-cancel {
+  margin-top: 8px;
+  width: 100%;
+  padding: 11px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.ss-picker-cancel:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
 /* ---------- Misc ---------- */
 .center-note {
   flex: 1;

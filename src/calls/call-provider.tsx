@@ -7,7 +7,13 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { Room, RoomEvent, type Participant } from "livekit-client";
+import {
+  Room,
+  RoomEvent,
+  Track,
+  type Participant,
+  type ScreenShareCaptureOptions,
+} from "livekit-client";
 import { api } from "../api/client";
 import type { CallInvite, CallKind, CallSignal } from "../api/types";
 import {
@@ -36,6 +42,7 @@ export interface CallContextValue {
   micOn: boolean;
   camOn: boolean;
   screenOn: boolean;
+  screenPickerOpen: boolean;
   connected: boolean;
   error: string | null;
   startCall: (
@@ -49,7 +56,11 @@ export interface CallContextValue {
   hangup: () => void;
   toggleMic: () => void;
   toggleCam: () => void;
+  // Opens the source picker when off, stops sharing when on.
   toggleScreen: () => void;
+  // Called from the picker with the chosen surface options.
+  startScreenShare: (options: ScreenShareCaptureOptions) => void;
+  cancelScreenShare: () => void;
   // Socket signal sinks — wired by the workspace to the realtime connection.
   signals: {
     onInvite: (e: CallInvite) => void;
@@ -83,6 +94,7 @@ export function CallProvider({
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(false);
   const [screenOn, setScreenOn] = useState(false);
+  const [screenPickerOpen, setScreenPickerOpen] = useState(false);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -126,6 +138,8 @@ export function CallProvider({
     if (audioRef.current) audioRef.current.innerHTML = "";
     metaRef.current = null;
     connectedRef.current = false;
+    setScreenOn(false);
+    setScreenPickerOpen(false);
     setMeta(null);
     setInvite(null);
     setParticipants([]);
@@ -146,6 +160,13 @@ export function CallProvider({
           const el = track.attach();
           audioRef.current.appendChild(el);
         }
+      });
+
+      // Keep the screen-share toggle in sync when the capture ends outside our
+      // UI — e.g. the user hits the OS "Stop sharing" control or the source
+      // window closes. LiveKit unpublishes the track for us; mirror that here.
+      room.on(RoomEvent.LocalTrackUnpublished, (pub) => {
+        if (pub.source === Track.Source.ScreenShare) setScreenOn(false);
       });
 
       await room.connect(livekitUrl, token);
@@ -259,26 +280,60 @@ export function CallProvider({
     rebuild();
   }, [rebuild]);
 
-  const toggleScreen = useCallback(async () => {
+  const flashError = useCallback((msg: string) => {
+    setError(msg);
+    window.setTimeout(() => setError(null), 5000);
+  }, []);
+
+  // Turn sharing off immediately, or open the source picker to turn it on.
+  const toggleScreen = useCallback(() => {
     const room = roomRef.current;
     if (!room) return;
-    const next = !room.localParticipant.isScreenShareEnabled;
-    try {
-      await room.localParticipant.setScreenShareEnabled(next, {
-        audio: true,
-      });
-      setScreenOn(next);
+    if (room.localParticipant.isScreenShareEnabled) {
+      room.localParticipant.setScreenShareEnabled(false);
+      setScreenOn(false);
       rebuild();
-    } catch (e) {
-      // User cancelled the picker, or the OS denied screen-recording access.
-      setError(
-        e instanceof Error && /permission|denied|not allowed/i.test(e.message)
-          ? "Screen sharing needs Screen Recording permission (System Settings › Privacy)."
-          : "Couldn't start screen sharing.",
-      );
-      window.setTimeout(() => setError(null), 5000);
+      return;
     }
-  }, [rebuild]);
+    // WKWebView on macOS exposes no built-in source chooser, so we present our
+    // own and pass the chosen surface into getDisplayMedia via startScreenShare.
+    if (
+      typeof navigator === "undefined" ||
+      !navigator.mediaDevices ||
+      typeof navigator.mediaDevices.getDisplayMedia !== "function"
+    ) {
+      flashError("Screen sharing isn't supported in this build.");
+      return;
+    }
+    setScreenPickerOpen(true);
+  }, [rebuild, flashError]);
+
+  const cancelScreenShare = useCallback(() => setScreenPickerOpen(false), []);
+
+  const startScreenShare = useCallback(
+    async (options: ScreenShareCaptureOptions) => {
+      const room = roomRef.current;
+      if (!room) return;
+      setScreenPickerOpen(false);
+      try {
+        await room.localParticipant.setScreenShareEnabled(true, options);
+        setScreenOn(true);
+        rebuild();
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "";
+        if (/permission|denied|not allowed|notallowed/i.test(msg)) {
+          flashError(
+            "Screen sharing needs Screen Recording permission (System Settings › Privacy).",
+          );
+        } else if (/abort|cancel/i.test(msg)) {
+          // User dismissed the OS capture prompt — no error worth showing.
+        } else {
+          flashError("Couldn't start screen sharing.");
+        }
+      }
+    },
+    [rebuild, flashError],
+  );
 
   // ---- Socket signals ----
   const markConnected = useCallback(() => {
@@ -343,6 +398,7 @@ export function CallProvider({
     micOn,
     camOn,
     screenOn,
+    screenPickerOpen,
     connected,
     error,
     startCall,
@@ -352,6 +408,8 @@ export function CallProvider({
     toggleMic,
     toggleCam,
     toggleScreen,
+    startScreenShare,
+    cancelScreenShare,
     signals,
   };
 
