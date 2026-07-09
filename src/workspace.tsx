@@ -294,32 +294,58 @@ export function Workspace({
     }
   }
 
-  async function sendFile(file: File) {
-    const convId = activeIdRef.current;
-    if (!convId) return;
-    const ct = file.type || "application/octet-stream";
-    const kind = ct.startsWith("image/")
+  function attachmentKind(contentType: string): string {
+    return contentType.startsWith("image/")
       ? "IMAGE"
-      : ct.startsWith("video/")
+      : contentType.startsWith("video/")
         ? "VIDEO"
-        : ct.startsWith("audio/")
+        : contentType.startsWith("audio/")
           ? "VOICE"
           : "FILE";
-    setToast("Uploading…");
+  }
+
+  // Uploads a single file to storage and returns its attachment descriptor.
+  async function uploadOne(convId: string, file: File) {
+    const ct = file.type || "application/octet-stream";
+    const kind = attachmentKind(ct);
+    const { key, uploadUrl } = await api.uploadUrl(convId, kind, ct, file.size);
+    await putFile(uploadUrl, ct, file);
+    return {
+      key,
+      kind,
+      contentType: ct,
+      byteSize: file.size,
+      fileName: file.name,
+    };
+  }
+
+  // Attach button path: send a single file.
+  async function sendFile(file: File) {
+    await sendFiles([file]);
+  }
+
+  // Bulk path (attach picker + drag-and-drop): upload every file, then group
+  // all images into one bento-style message (matching mobile) and send each
+  // non-image file as its own message.
+  async function sendFiles(files: File[]) {
+    const convId = activeIdRef.current;
+    if (!convId || files.length === 0) return;
+    setToast(files.length > 1 ? `Uploading ${files.length} files…` : "Uploading…");
     try {
-      const { key, uploadUrl } = await api.uploadUrl(convId, kind, ct, file.size);
-      await putFile(uploadUrl, ct, file);
-      const msg = await api.sendAttachment(convId, [
-        {
-          key,
-          kind,
-          contentType: ct,
-          byteSize: file.size,
-          fileName: file.name,
-        },
-      ]);
-      appendMessage(msg);
-      bumpConversation(msg, true);
+      const uploaded = await Promise.all(
+        files.map((f) => uploadOne(convId, f)),
+      );
+      const images = uploaded.filter((a) => a.kind === "IMAGE");
+      const others = uploaded.filter((a) => a.kind !== "IMAGE");
+      const batches = [
+        ...(images.length ? [images] : []),
+        ...others.map((o) => [o]),
+      ];
+      for (const batch of batches) {
+        const msg = await api.sendAttachment(convId, batch);
+        appendMessage(msg);
+        bumpConversation(msg, true);
+      }
       setToast(null);
     } catch (e) {
       setToast(
@@ -419,6 +445,8 @@ export function Workspace({
             <div
               className="chat-dropzone"
               onDragOver={(e) => {
+                // Only react to file drags, never text/element drags.
+                if (!e.dataTransfer.types.includes("Files")) return;
                 e.preventDefault();
                 if (!dragging) setDragging(true);
               }}
@@ -426,10 +454,11 @@ export function Workspace({
                 if (e.currentTarget === e.target) setDragging(false);
               }}
               onDrop={(e) => {
+                if (!e.dataTransfer.types.includes("Files")) return;
                 e.preventDefault();
                 setDragging(false);
-                const f = e.dataTransfer.files?.[0];
-                if (f) sendFile(f);
+                const files = Array.from(e.dataTransfer.files ?? []);
+                if (files.length) sendFiles(files);
               }}
             >
               <ChatPane
