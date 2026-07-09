@@ -1,7 +1,7 @@
 {
   "name": "klic-desktop",
   "private": true,
-  "version": "0.6.11",
+  "version": "0.6.16",
   "type": "module",
   "description": "Klic desktop client",
   "scripts": {

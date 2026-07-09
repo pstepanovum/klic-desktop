@@ -1,6 +1,6 @@
 [package]
 name = "klic-desktop"
-version = "0.6.11"
+version = "0.6.16"
 description = "Klic desktop client"
 authors = ["Klic"]
 edition = "2021"
