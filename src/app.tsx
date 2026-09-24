@@ -26,20 +26,32 @@ export default function App() {
   const [search, setSearch] = useState("");
   const [update, setUpdate] = useState<UpdateInfo | null>(null);
   const [updating, setUpdating] = useState(false);
+  const [updatePercent, setUpdatePercent] = useState(0);
   const authed = !!session && !!self;
   const prevAuthed = useRef<boolean | null>(null);
+  // Version the user dismissed with "Later" — don't re-nag about it this run.
+  const dismissedUpdate = useRef<string | null>(null);
 
   useEffect(() => applyTheme(theme), [theme]);
 
-  // One throttled auto-check for updates on launch (packaged app only).
+  // Auto-check for updates on launch, then every 6h while the app stays open
+  // (packaged app only; the feed is GitHub Releases, independent of the API).
   useEffect(() => {
-    const KEY = "klic.lastUpdateCheck";
-    const last = Number(localStorage.getItem(KEY) || 0);
-    if (Date.now() - last < 6 * 60 * 60 * 1000) return; // at most every 6h
-    localStorage.setItem(KEY, String(Date.now()));
-    checkForUpdate()
-      .then((info) => info && setUpdate(info))
-      .catch(() => {});
+    let stopped = false;
+    const run = () =>
+      checkForUpdate()
+        .then((info) => {
+          if (stopped || !info) return;
+          if (info.version === dismissedUpdate.current) return;
+          setUpdate((prev) => prev ?? info);
+        })
+        .catch(() => {});
+    run();
+    const timer = setInterval(run, 6 * 60 * 60 * 1000);
+    return () => {
+      stopped = true;
+      clearInterval(timer);
+    };
   }, []);
 
   // Window visibility → presence: a hidden/minimized window shouldn't keep the user
@@ -54,11 +66,18 @@ export default function App() {
 
   async function runUpdate(info: UpdateInfo) {
     setUpdating(true);
+    setUpdatePercent(0);
     try {
-      await installUpdate(info);
+      await installUpdate(info, setUpdatePercent);
+      // On success the app relaunches; this line rarely runs.
     } catch {
       setUpdating(false);
     }
+  }
+
+  function dismissUpdate() {
+    dismissedUpdate.current = update?.version ?? null;
+    setUpdate(null);
   }
 
   // Resize the native window when moving between auth and the app.
@@ -124,15 +143,19 @@ export default function App() {
         <div className="update-banner">
           <span>
             {updating
-              ? `Updating to ${update.version}…`
+              ? `Updating to ${update.version}… ${updatePercent}%`
               : `Klic ${update.version} is available.`}
           </span>
-          {!updating && (
+          {updating ? (
+            <div className="update-progress">
+              <span style={{ width: `${updatePercent}%` }} />
+            </div>
+          ) : (
             <div className="update-banner-actions">
               <button className="ub-btn" onClick={() => runUpdate(update)}>
                 Update &amp; restart
               </button>
-              <button className="ub-btn ghost" onClick={() => setUpdate(null)}>
+              <button className="ub-btn ghost" onClick={dismissUpdate}>
                 Later
               </button>
             </div>

@@ -10,8 +10,9 @@ name: Windows installer
 #     (i.e. after the Mac created the tag + uploaded the .dmg). One run per release.
 #   - workflow_dispatch    -> manual, to build the first one or re-run for a tag.
 #
-# Minutes: single Windows job (2x multiplier), hard-capped at 18 min, Rust + npm
-# cached so repeat runs are fast. First (cold-cache) run is the slowest.
+# Minutes: single Windows job (2x multiplier), hard-capped at 35 min, Rust + npm
+# cached so repeat runs are fast. Cold-cache runs (caches evict after 7 idle days)
+# have been seen to exceed 15 min — the cap must leave them room to finish.
 
 on:
   release:
@@ -32,7 +33,7 @@ concurrency:
 jobs:
   build-windows:
     runs-on: windows-latest
-    timeout-minutes: 18
+    timeout-minutes: 35
     steps:
       - name: Checkout
         uses: actions/checkout@v4

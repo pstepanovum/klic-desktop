@@ -1177,6 +1177,11 @@ textarea {
   overflow: hidden;
   margin-top: 10px;
 }
+.update-banner .update-progress {
+  width: 130px;
+  margin-top: 0;
+  flex: none;
+}
 .update-progress span {
   display: block;
   height: 100%;
