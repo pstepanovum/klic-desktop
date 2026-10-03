@@ -1,5 +1,9 @@
 // API configuration. The base URL is overridable at build time via the
 // VITE_API_BASE_URL env var; it defaults to the live Klic backend.
+// The webview CSP (src-tauri/tauri.conf.json > app.security.csp) only allows the
+// known Klic API/media/LiveKit hosts; a release build pointed at another backend
+// must add its https:// and wss:// origins there (devCsp already allows
+// localhost), and its media host to the http scope in capabilities/default.json.
 const DEFAULT_API_BASE_URL = "https://api.klic.pstepanov.dev";
 
 // Origin of the backend, e.g. https://api.klic.pstepanov.dev

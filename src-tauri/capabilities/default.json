@@ -11,14 +11,16 @@
     "core:window:allow-set-max-size",
     "core:window:allow-center",
     "core:window:allow-start-dragging",
-    "core:window:allow-set-focus",
     "shell:allow-open",
-    "updater:default",
-    "process:default",
+    "updater:allow-check",
+    "updater:allow-download-and-install",
     "process:allow-restart",
     {
       "identifier": "http:default",
-      "allow": [{ "url": "https://*" }, { "url": "http://*" }]
+      "allow": [
+        { "url": "https://media.klic.pstepanov.dev/*" },
+        { "url": "https://media.89.34.230.2.sslip.io/*" }
+      ]
     }
   ]
 }
