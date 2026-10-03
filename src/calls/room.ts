@@ -1,4 +1,6 @@
 // LiveKit room factory + track helpers, tuned for a desktop group-call grid.
+// Pulls in livekit-client at runtime, so the call provider only reaches this
+// module through a dynamic import (call-view / call-tile are lazy already).
 import {
   Room,
   RoomEvent,
@@ -41,10 +43,6 @@ export const ROOM_UPDATE_EVENTS: RoomEvent[] = [
   RoomEvent.ActiveSpeakersChanged,
   RoomEvent.ConnectionQualityChanged,
 ];
-
-export function participantList(room: Room): Participant[] {
-  return [room.localParticipant, ...Array.from(room.remoteParticipants.values())];
-}
 
 export function isCameraEnabled(p: Participant): boolean {
   const pub = p.getTrackPublication(Track.Source.Camera);

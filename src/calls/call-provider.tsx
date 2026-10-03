@@ -7,22 +7,32 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import {
+// Types only: livekit-client itself is loaded on demand (see loadCallKit).
+import type {
   Room,
-  RoomEvent,
-  Track,
-  type Participant,
-  type ScreenShareCaptureOptions,
+  Participant,
+  ScreenShareCaptureOptions,
 } from "livekit-client";
 import { api } from "../api/client";
 import type { CallInvite, CallKind, CallSignal } from "../api/types";
-import {
-  createCallRoom,
-  ROOM_UPDATE_EVENTS,
-  participantList,
-} from "./room";
 
 const RING_TIMEOUT_MS = 45000;
+
+// livekit-client is the bulk of the bundle and only needed once a call starts,
+// so it (and the room helpers built on it) loads lazily. Preloaded as soon as a
+// call is placed, accepted or rings so the first connect isn't held up on it.
+type CallKit = [typeof import("livekit-client"), typeof import("./room")];
+let callKit: Promise<CallKit> | null = null;
+function loadCallKit(): Promise<CallKit> {
+  if (!callKit) {
+    callKit = Promise.all([import("livekit-client"), import("./room")]);
+    // Don't cache a failed chunk fetch; let the next attempt retry.
+    callKit.catch(() => {
+      callKit = null;
+    });
+  }
+  return callKit;
+}
 
 export type CallPhase = "idle" | "incoming" | "outgoing" | "active";
 
@@ -112,7 +122,13 @@ export function CallProvider({
 
   const rebuild = useCallback(() => {
     const room = roomRef.current;
-    setParticipants(room ? participantList(room) : []);
+    // Local first, then remotes (kept inline so this file has no runtime
+    // dependency on livekit-client).
+    setParticipants(
+      room
+        ? [room.localParticipant, ...Array.from(room.remoteParticipants.values())]
+        : [],
+    );
   }, []);
 
   const clearRing = () => {
@@ -149,6 +165,8 @@ export function CallProvider({
 
   const connectRoom = useCallback(
     async (livekitUrl: string, token: string, callId: string, kind: CallKind) => {
+      const [{ RoomEvent, Track }, { createCallRoom, ROOM_UPDATE_EVENTS }] =
+        await loadCallKit();
       const room = createCallRoom();
       roomRef.current = room;
       ROOM_UPDATE_EVENTS.forEach((e) => room.on(e, rebuild));
@@ -195,6 +213,7 @@ export function CallProvider({
       isGroup: boolean,
     ) => {
       if (phaseRef.current !== "idle") return;
+      loadCallKit().catch(() => {});
       setError(null);
       setCamOn(kind === "VIDEO");
       setPhaseBoth("outgoing");
@@ -219,6 +238,7 @@ export function CallProvider({
   const accept = useCallback(async () => {
     const inv = invite;
     if (!inv) return;
+    loadCallKit().catch(() => {});
     clearRing();
     const m: CallMeta = {
       callId: inv.callId,
@@ -349,6 +369,7 @@ export function CallProvider({
           if (phaseRef.current !== "idle") api.callDecline(e.callId).catch(() => {});
           return;
         }
+        loadCallKit().catch(() => {});
         setInvite(e);
         setPhaseBoth("incoming");
         clearRing();

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { api, ApiError, onSessionExpired } from "./api/client";
 import { putFile } from "./util/upload";
 import type { Session } from "./api/tokens";
@@ -6,17 +6,27 @@ import type { Conversation, Message, SelfUser } from "./api/types";
 import { realtime, type ConnectionState } from "./realtime/socket";
 import { Sidebar } from "./components/sidebar";
 import { ChatPane } from "./components/chat-pane";
-import { Settings } from "./components/settings/settings";
-import { Friends } from "./components/friends";
 import { RecentCalls } from "./components/recent-calls";
 import { Icon } from "./icons/icon";
 import { Avatar } from "./components/avatar";
 import { useCall } from "./calls/call-provider";
-import { CallView } from "./calls/call-view";
 import { IncomingCall } from "./calls/incoming-call";
 import { conversationTitle } from "./util/format";
 import { displayNameFor } from "./util/format";
 import { type Theme } from "./util/theme";
+
+// Secondary tabs and the call surface load on first use to keep startup lean.
+const Settings = lazy(() =>
+  import("./components/settings/settings").then((m) => ({ default: m.Settings })),
+);
+const Friends = lazy(() =>
+  import("./components/friends").then((m) => ({ default: m.Friends })),
+);
+const CallView = lazy(() =>
+  import("./calls/call-view").then((m) => ({ default: m.CallView })),
+);
+// Blank pane with the same flex footprint while a lazy tab chunk loads.
+const paneFallback = <div className="settings" />;
 
 const PAGE_SIZE = 50;
 type Tab = "chats" | "friends" | "calls" | "settings";
@@ -497,7 +507,11 @@ export function Workspace({
           )}
         </>
       )}
-      {tab === "friends" && <Friends conversations={conversations} />}
+      {tab === "friends" && (
+        <Suspense fallback={paneFallback}>
+          <Friends conversations={conversations} />
+        </Suspense>
+      )}
       {tab === "calls" && (
         <RecentCalls
           onCallBack={(convId, kind, title) =>
@@ -506,17 +520,23 @@ export function Workspace({
         />
       )}
       {tab === "settings" && (
-        <Settings
-          self={self}
-          theme={theme}
-          onSetTheme={onSetTheme}
-          onUpdated={onUpdateSelf}
-          onLogout={onLogout}
-        />
+        <Suspense fallback={paneFallback}>
+          <Settings
+            self={self}
+            theme={theme}
+            onSetTheme={onSetTheme}
+            onUpdated={onUpdateSelf}
+            onLogout={onLogout}
+          />
+        </Suspense>
       )}
 
       {call.phase === "incoming" && <IncomingCall />}
-      {showCall && <CallView />}
+      {showCall && (
+        <Suspense fallback={null}>
+          <CallView />
+        </Suspense>
+      )}
       {toast && <div className="toast">{toast}</div>}
     </div>
   );

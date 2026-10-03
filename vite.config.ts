@@ -23,5 +23,8 @@ export default defineConfig({
     target: "es2021",
     minify: process.env.TAURI_ENV_DEBUG ? false : "esbuild",
     sourcemap: !!process.env.TAURI_ENV_DEBUG,
+    // livekit-client (~530 kB) is its own lazily loaded chunk, fetched only when
+    // a call starts or rings; don't warn about it.
+    chunkSizeWarningLimit: 600,
   },
 });

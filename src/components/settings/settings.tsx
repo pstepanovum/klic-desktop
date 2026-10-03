@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import type { SelfUser } from "../../api/types";
 import { Avatar } from "../avatar";
 import { Icon, type IconName } from "../../icons/icon";
@@ -8,7 +8,6 @@ import { PrivacySecurity } from "./privacy-security";
 import { Notifications } from "./notifications";
 import { Passkeys } from "./passkeys";
 import { SavedMessages } from "./saved-messages";
-import { QrCode } from "./qr-code";
 import { AboutUpdates } from "./about-updates";
 import {
   ChatThemePage,
@@ -17,6 +16,11 @@ import {
   EncryptionInfo,
   ReportProblem,
 } from "./misc-pages";
+
+// The qrcode encoder is only needed on this one page.
+const QrCode = lazy(() =>
+  import("./qr-code").then((m) => ({ default: m.QrCode })),
+);
 
 type PageId =
   | "profile"
@@ -75,7 +79,11 @@ export function Settings({ self, theme, onSetTheme, onUpdated, onLogout }: Props
       case "language":
         return <Language />;
       case "qr":
-        return <QrCode self={self} />;
+        return (
+          <Suspense fallback={null}>
+            <QrCode self={self} />
+          </Suspense>
+        );
       case "saved":
         return <SavedMessages />;
       case "encryption":

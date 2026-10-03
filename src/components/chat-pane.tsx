@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { Attachment, Conversation, Message, SelfUser } from "../api/types";
 import { Avatar } from "./avatar";
 import {
@@ -9,8 +9,15 @@ import {
   humanSize,
 } from "../util/format";
 import { Icon, type IconName } from "../icons/icon";
-import { StickerPicker } from "./sticker-picker";
 import { externalLinkClick } from "../util/external";
+
+// Popovers that only matter once opened load on demand.
+const StickerPicker = lazy(() =>
+  import("./sticker-picker").then((m) => ({ default: m.StickerPicker })),
+);
+const ImageViewer = lazy(() =>
+  import("./image-viewer").then((m) => ({ default: m.ImageViewer })),
+);
 
 interface Props {
   me: SelfUser;
@@ -458,12 +465,9 @@ export function ChatPane({
       </div>
 
       {viewer && (
-        <div className="image-viewer" onClick={() => setViewer(null)}>
-          <img src={viewer} alt="preview" />
-          <button className="image-viewer-close" onClick={() => setViewer(null)}>
-            <Icon name="close" size={22} />
-          </button>
-        </div>
+        <Suspense fallback={null}>
+          <ImageViewer src={viewer} onClose={() => setViewer(null)} />
+        </Suspense>
       )}
 
       {menu && (
@@ -602,10 +606,12 @@ export function ChatPane({
                 <Icon name="smile" size={22} />
               </button>
               {showStickers && (
-                <StickerPicker
-                  onPick={(id) => onSendSticker(id)}
-                  onClose={() => setShowStickers(false)}
-                />
+                <Suspense fallback={null}>
+                  <StickerPicker
+                    onPick={(id) => onSendSticker(id)}
+                    onClose={() => setShowStickers(false)}
+                  />
+                </Suspense>
               )}
             </>
           )}
