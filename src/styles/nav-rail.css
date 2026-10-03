@@ -1,0 +1,37 @@
+/* ---------- Nav rail ---------- */
+.nav-rail {
+  width: 60px;
+  flex-shrink: 0;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0;
+  gap: 4px;
+}
+.nav-rail .nav-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.nav-rail .nav-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+.nav-rail .nav-btn.active {
+  background: var(--bg-active);
+  color: var(--accent);
+}
+.nav-rail .nav-spacer {
+  flex: 1;
+}
+.nav-rail .nav-avatar {
+  cursor: pointer;
+}

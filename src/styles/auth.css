@@ -1,0 +1,201 @@
+/* ---------- Auth screens (mirrors AuthScaffold / AuthStyle) ---------- */
+.auth {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  display: flex;
+  justify-content: center;
+}
+/* Oversized bleeding background artwork, top-centered (AuthScaffold art). */
+/* Oversized bleeding backdrop (mobile AuthScaffold language): the art is ~3.5x
+   the form's footprint and sits BEHIND the opaque sheet, so its lower half is
+   hidden by the sheet and it never crowds the inputs. Anchored near the top so
+   the top of the scene (HELP + characters) fills the exposed band. */
+.auth-art {
+  position: absolute;
+  top: -8%;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 105%;
+  width: auto;
+  max-width: none;
+  opacity: 0.98;
+  pointer-events: none;
+  user-select: none;
+}
+.auth.signup .auth-art {
+  height: 93%;
+  top: -7%;
+}
+/* The rounded "circle" sheet the form sits on, rising from the bottom. */
+.auth-sheet {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 240%;
+  height: 66%;
+  background: var(--sheet);
+  border-radius: 50% 50% 0 0 / 22% 22% 0 0;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+}
+.auth.signup .auth-sheet {
+  height: 72%;
+}
+.auth-content {
+  position: relative;
+  z-index: 6;
+  pointer-events: auto;
+  align-self: flex-end;
+  width: 100%;
+  max-width: 420px;
+  padding: 0 32px 34px;
+  margin-bottom: 12vh;
+  text-align: center;
+}
+.auth.signup .auth-content {
+  margin-bottom: 8vh;
+}
+.auth-title {
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: -0.5px;
+  margin: 0;
+  color: var(--text);
+}
+.auth-subtitle {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin: 6px 0 0;
+}
+.auth-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 26px;
+  text-align: left;
+}
+/* Capsule input with optional @ prefix. */
+.pill-field {
+  display: flex;
+  align-items: center;
+  background: var(--bg-input);
+  border-radius: 999px;
+  padding: 0 18px;
+  height: 52px;
+}
+.pill-field .prefix {
+  color: var(--field-hint);
+  font-size: 16px;
+  margin-right: 4px;
+}
+.pill-field input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  color: var(--text);
+  font-size: 15px;
+  height: 100%;
+}
+.pill-field input::placeholder {
+  color: var(--field-hint);
+}
+/* Red capsule CTA (AuthStyle.ctaRed). */
+.pill-btn {
+  width: 100%;
+  height: 52px;
+  border: none;
+  border-radius: 999px;
+  background: var(--cta-red);
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 500;
+  margin-top: 20px;
+  transition: filter 0.15s;
+}
+.pill-btn:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+.pill-btn:disabled {
+  background: #b2b2b2;
+  cursor: default;
+}
+.auth-link {
+  background: none;
+  border: none;
+  color: var(--text-faint);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: underline;
+  padding: 0;
+  margin-top: 18px;
+}
+.auth-forgot {
+  display: block;
+  margin: 10px 2px 0 auto;
+  background: none;
+  border: none;
+  color: var(--text-faint);
+  font-size: 13px;
+  font-weight: 500;
+}
+.auth-error {
+  color: var(--danger);
+  font-size: 13px;
+  margin-top: 12px;
+}
+/* Password strength meter (SignUpView.strengthBar). */
+.strength {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px 0;
+}
+.strength .seg {
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  transition: background 0.25s;
+}
+.strength .label {
+  width: 46px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 500;
+}
+/* Privacy checkbox row (KlicCheckbox). */
+.privacy-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: left;
+}
+.privacy-box {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1.5px solid var(--field-hint);
+  background: transparent;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+}
+.privacy-box.on {
+  background: var(--cta-red);
+  border-color: var(--cta-red);
+}
+.privacy-row a {
+  color: var(--accent);
+  cursor: pointer;
+}
