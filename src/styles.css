@@ -1,49 +1,49 @@
 /* ---------- TikTok Sans + Bangers (matches iOS/Android) ---------- */
 @font-face {
   font-family: "TikTok Sans";
-  src: url("/fonts/TikTokSans-Light.ttf") format("truetype");
+  src: url("/fonts/TikTokSans-Light.woff2") format("woff2");
   font-weight: 300;
   font-display: swap;
 }
 @font-face {
   font-family: "TikTok Sans";
-  src: url("/fonts/TikTokSans-Regular.ttf") format("truetype");
+  src: url("/fonts/TikTokSans-Regular.woff2") format("woff2");
   font-weight: 400;
   font-display: swap;
 }
 @font-face {
   font-family: "TikTok Sans";
-  src: url("/fonts/TikTokSans-Medium.ttf") format("truetype");
+  src: url("/fonts/TikTokSans-Medium.woff2") format("woff2");
   font-weight: 500;
   font-display: swap;
 }
 @font-face {
   font-family: "TikTok Sans";
-  src: url("/fonts/TikTokSans-SemiBold.ttf") format("truetype");
+  src: url("/fonts/TikTokSans-SemiBold.woff2") format("woff2");
   font-weight: 600;
   font-display: swap;
 }
 @font-face {
   font-family: "TikTok Sans";
-  src: url("/fonts/TikTokSans-Bold.ttf") format("truetype");
+  src: url("/fonts/TikTokSans-Bold.woff2") format("woff2");
   font-weight: 700;
   font-display: swap;
 }
 @font-face {
   font-family: "TikTok Sans";
-  src: url("/fonts/TikTokSans-ExtraBold.ttf") format("truetype");
+  src: url("/fonts/TikTokSans-ExtraBold.woff2") format("woff2");
   font-weight: 800;
   font-display: swap;
 }
 @font-face {
   font-family: "TikTok Sans";
-  src: url("/fonts/TikTokSans-Black.ttf") format("truetype");
+  src: url("/fonts/TikTokSans-Black.woff2") format("woff2");
   font-weight: 900;
   font-display: swap;
 }
 @font-face {
   font-family: "Bangers";
-  src: url("/fonts/Bangers-Regular.ttf") format("truetype");
+  src: url("/fonts/Bangers-Regular.woff2") format("woff2");
   font-weight: 400;
   font-display: swap;
 }
