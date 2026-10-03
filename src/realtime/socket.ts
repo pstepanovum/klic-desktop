@@ -2,6 +2,7 @@
 // the access token in the handshake, and exposes typed subscribe helpers.
 import { io, Socket } from "socket.io-client";
 import { SOCKET_URL } from "../config";
+import { getAccessToken } from "../api/tokens";
 import type {
   Message,
   TypingEvent,
@@ -47,8 +48,9 @@ export class Realtime {
     this.handlers.onState?.("connecting");
     const socket = io(SOCKET_URL, {
       transports: ["websocket"],
-      auth: { token },
-      extraHeaders: { Authorization: `Bearer ${token}` },
+      // Re-read on every (re)connect so a silent REST refresh is picked up
+      // instead of retrying the handshake with the expired token forever.
+      auth: (cb) => cb({ token: getAccessToken() ?? token }),
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,

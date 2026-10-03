@@ -38,25 +38,39 @@ export class ApiError extends Error {
 // Fired when the refresh token is no longer valid; the app listens and logs out.
 export const onSessionExpired = new EventTarget();
 
+// REST calls give up after this long so a dead connection surfaces as an error
+// instead of hanging the UI. Uploads (util/upload.ts) are deliberately exempt.
+const REQUEST_TIMEOUT_MS = 20_000;
+
+function timeoutSignal(ms: number): AbortSignal {
+  // AbortSignal.timeout is missing from older WKWebView builds (macOS 10.15).
+  if (typeof AbortSignal.timeout === "function") return AbortSignal.timeout(ms);
+  const ctrl = new AbortController();
+  setTimeout(() => ctrl.abort(), ms);
+  return ctrl.signal;
+}
+
 // Single-flight refresh so concurrent 401s trigger only one refresh call.
 let refreshInFlight: Promise<boolean> | null = null;
 
+// Resolves true when tokens were rotated and false when the server rejected the
+// refresh token (400/401 — the session is really over). Anything else (offline,
+// timeout, 5xx, 429) throws, so the caller sees a retryable failure and the
+// user stays signed in.
 async function refreshTokens(): Promise<boolean> {
   const refreshToken = getRefreshToken();
   if (!refreshToken) return false;
-  try {
-    const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refreshToken }),
-    });
-    if (!res.ok) return false;
-    const data = (await res.json()) as AuthResponse;
-    saveTokens(data.accessToken, data.refreshToken);
-    return true;
-  } catch {
-    return false;
-  }
+  const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refreshToken }),
+    signal: timeoutSignal(REQUEST_TIMEOUT_MS),
+  });
+  if (res.status === 400 || res.status === 401) return false;
+  if (!res.ok) throw new ApiError(res.status, "Could not refresh session");
+  const data = (await res.json()) as AuthResponse;
+  saveTokens(data.accessToken, data.refreshToken);
+  return true;
 }
 
 function ensureRefresh(): Promise<boolean> {
@@ -99,12 +113,15 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: timeoutSignal(REQUEST_TIMEOUT_MS),
     });
   };
 
   let res = await send();
 
-  // Silent refresh + retry once on 401.
+  // Silent refresh + retry once on 401. A transient refresh failure throws out
+  // of ensureRefresh() as an ordinary request error; only a rejected refresh
+  // token ends the session.
   if (res.status === 401 && auth && getRefreshToken()) {
     const refreshed = await ensureRefresh();
     if (refreshed) {
