@@ -1,4 +1,13 @@
-import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  lazy,
+  memo,
+  Suspense,
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { Attachment, Conversation, Message, SelfUser } from "../api/types";
 import { Avatar } from "./avatar";
 import {
@@ -218,60 +227,121 @@ function AttachmentView({
   );
 }
 
-export function ChatPane({
-  me,
-  conversation,
-  messages,
-  loadingHistory,
-  hasMore,
-  typingNames,
-  onLoadOlder,
+interface BubbleProps {
+  m: Message;
+  mine: boolean;
+  grouped: boolean;
+  // Sender label for group chats; only set on the first bubble of a run.
+  senderName?: string;
+  onContextMenu: (e: React.MouseEvent, m: Message) => void;
+  onReaction: (m: Message, emoji: string) => void;
+  onOpenImage: (url: string) => void;
+}
+
+// One message row. Memoized with stable handlers and precomputed layout flags so
+// a new message or a typing update doesn't re-render the whole history.
+const MessageBubble = memo(function MessageBubble({
+  m,
+  mine,
+  grouped,
+  senderName,
+  onContextMenu,
+  onReaction,
+  onOpenImage,
+}: BubbleProps) {
+  const deleted = !!m.deletedAt;
+  const text = useMemo(() => (m.body ? linkify(m.body) : null), [m.body]);
+  const embed = useMemo(() => (m.body ? detectEmbed(m.body) : null), [m.body]);
+
+  if (m.kind === "CALL_EVENT") {
+    return (
+      <div className="call-event">
+        <Icon
+          name={m.call?.kind === "VIDEO" ? "bold_video" : "bold_phone"}
+          size={13}
+        />
+        <span>{callEventText(m)}</span>
+        <span className="call-event-time">{clockTime(m.createdAt)}</span>
+      </div>
+    );
+  }
+
+  const isSticker = m.kind === "STICKER" || (!!m.stickerUrl && !m.body);
+  return (
+    <div className={`msg-row ${mine ? "out" : "in"} ${grouped ? "grouped" : ""}`}>
+      <div
+        className={`bubble ${isSticker ? "sticker-only" : ""}`}
+        onContextMenu={(e) => onContextMenu(e, m)}
+      >
+        {senderName !== undefined && (
+          <div className="bubble-sender">{senderName}</div>
+        )}
+        {m.replyTo && (
+          <div className="bubble-reply">
+            {m.replyTo.deleted ? "Deleted message" : m.replyTo.preview}
+          </div>
+        )}
+        {m.attachments.map((att) => (
+          <AttachmentView key={att.id} att={att} onOpen={onOpenImage} />
+        ))}
+        {m.stickerUrl && (
+          <img
+            className={isSticker ? "bubble-sticker" : "bubble-img"}
+            src={m.stickerUrl}
+            alt="sticker"
+          />
+        )}
+        {deleted ? (
+          <div className="bubble-text" style={{ fontStyle: "italic", opacity: 0.7 }}>
+            Message deleted
+          </div>
+        ) : (
+          m.body && <div className="bubble-text">{text}</div>
+        )}
+        {!deleted && m.body && embed && <LinkEmbed embed={embed} />}
+        {m.reactions && m.reactions.length > 0 && (
+          <div className="bubble-reactions">
+            {m.reactions.map((r) => (
+              <button
+                key={r.emoji}
+                className={`reaction ${r.mine ? "mine" : ""}`}
+                onClick={() => onReaction(m, r.emoji)}
+              >
+                {r.emoji} {r.count}
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="bubble-meta">
+          <span>{clockTime(m.createdAt)}</span>
+          {mine && <Tick status={m.status} />}
+        </div>
+      </div>
+    </div>
+  );
+});
+
+interface ComposerProps {
+  onSend: (text: string) => void;
+  onTypingChange: (isTyping: boolean) => void;
+  onSendSticker?: (stickerId: string) => void;
+  onSendFile?: (file: File) => void;
+}
+
+// Owns the draft and the typing-indicator emitter so keystrokes only re-render
+// the composer, not the message list. The pane remounts per conversation
+// (key={conversation.id}), which also resets the draft.
+function Composer({
   onSend,
   onTypingChange,
-  onStartCall,
   onSendSticker,
-  onReact,
-  onStar,
-  onPin,
-  onDelete,
   onSendFile,
-}: Props) {
+}: ComposerProps) {
   const [draft, setDraft] = useState("");
   const [showStickers, setShowStickers] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-  const [menu, setMenu] = useState<{ x: number; y: number; m: Message } | null>(
-    null,
-  );
-  const [replyTo, setReplyTo] = useState<Message | null>(null);
-  const [viewer, setViewer] = useState<string | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
   const typingTimer = useRef<number | null>(null);
   const wasTyping = useRef(false);
-  const prevLastId = useRef<string | null>(null);
-  const prevConvId = useRef<string | null>(null);
-
-  const isGroup = conversation.type === "GROUP";
-
-  // Auto-scroll to bottom on conversation switch and when a new message arrives
-  // at the end (but not when older history is prepended).
-  useLayoutEffect(() => {
-    const last = messages[messages.length - 1];
-    const convChanged = prevConvId.current !== conversation.id;
-    const newTail = last && prevLastId.current !== last.id;
-    if (convChanged || newTail) {
-      bottomRef.current?.scrollIntoView({
-        behavior: convChanged ? "auto" : "smooth",
-      });
-    }
-    prevConvId.current = conversation.id;
-    prevLastId.current = last ? last.id : null;
-  }, [messages, conversation.id]);
-
-  // Reset draft when switching conversations.
-  useEffect(() => {
-    setDraft("");
-  }, [conversation.id]);
 
   function stopTyping() {
     if (wasTyping.current) {
@@ -301,9 +371,8 @@ export function ChatPane({
   function send() {
     const text = draft.trim();
     if (!text) return;
-    onSend(text, replyTo?.id);
+    onSend(text);
     setDraft("");
-    setReplyTo(null);
     stopTyping();
   }
 
@@ -312,6 +381,135 @@ export function ChatPane({
       e.preventDefault();
       send();
     }
+  }
+
+  return (
+    <div className="composer">
+      {onSendFile && (
+        <>
+          <button
+            className="icon-btn composer-btn"
+            title="Attach a photo or file"
+            onClick={() => fileRef.current?.click()}
+          >
+            <Icon name="paperclip" size={21} />
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*,video/*,audio/*,*/*"
+            hidden
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) onSendFile(f);
+              e.target.value = "";
+            }}
+          />
+        </>
+      )}
+      <div className="composer-input">
+        <textarea
+          value={draft}
+          placeholder="Write a message…"
+          rows={1}
+          onChange={(e) => handleDraft(e.target.value)}
+          onKeyDown={onKeyDown}
+          onBlur={stopTyping}
+        />
+        {onSendSticker && (
+          <>
+            <button
+              className="composer-emoji"
+              title="Stickers"
+              onClick={() => setShowStickers((v) => !v)}
+            >
+              <Icon name="smile" size={22} />
+            </button>
+            {showStickers && (
+              <Suspense fallback={null}>
+                <StickerPicker
+                  onPick={(id) => onSendSticker(id)}
+                  onClose={() => setShowStickers(false)}
+                />
+              </Suspense>
+            )}
+          </>
+        )}
+      </div>
+      <button
+        className="send-btn"
+        onClick={send}
+        disabled={draft.trim().length === 0}
+        title="Send (Enter)"
+      >
+        <Icon name="paperplane" size={20} />
+      </button>
+    </div>
+  );
+}
+
+export function ChatPane({
+  me,
+  conversation,
+  messages,
+  loadingHistory,
+  hasMore,
+  typingNames,
+  onLoadOlder,
+  onSend,
+  onTypingChange,
+  onStartCall,
+  onSendSticker,
+  onReact,
+  onStar,
+  onPin,
+  onDelete,
+  onSendFile,
+}: Props) {
+  const [menu, setMenu] = useState<{ x: number; y: number; m: Message } | null>(
+    null,
+  );
+  const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const [viewer, setViewer] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const prevLastId = useRef<string | null>(null);
+  const prevConvId = useRef<string | null>(null);
+  // Latest onReact for the stable bubble handler below (the parent passes a
+  // fresh function every render).
+  const onReactRef = useRef(onReact);
+  onReactRef.current = onReact;
+
+  const isGroup = conversation.type === "GROUP";
+
+  // Auto-scroll to bottom on conversation switch and when a new message arrives
+  // at the end (but not when older history is prepended).
+  useLayoutEffect(() => {
+    const last = messages[messages.length - 1];
+    const convChanged = prevConvId.current !== conversation.id;
+    const newTail = last && prevLastId.current !== last.id;
+    if (convChanged || newTail) {
+      bottomRef.current?.scrollIntoView({
+        behavior: convChanged ? "auto" : "smooth",
+      });
+    }
+    prevConvId.current = conversation.id;
+    prevLastId.current = last ? last.id : null;
+  }, [messages, conversation.id]);
+
+  const openMenu = useCallback((e: React.MouseEvent, m: Message) => {
+    if (m.deletedAt) return;
+    e.preventDefault();
+    setMenu({ x: e.clientX, y: e.clientY, m });
+  }, []);
+
+  const reactTo = useCallback((m: Message, emoji: string) => {
+    onReactRef.current?.(m.id, emoji);
+  }, []);
+
+  function sendDraft(text: string) {
+    onSend(text, replyTo?.id);
+    setReplyTo(null);
   }
 
   const subtitle =
@@ -375,90 +573,23 @@ export function ChatPane({
         {messages.map((m, i) => {
           const mine = m.senderId === me.id;
           const prev = messages[i - 1];
-          const grouped = prev && prev.senderId === m.senderId;
+          const grouped = !!prev && prev.senderId === m.senderId;
           const showSender = isGroup && !mine && !grouped;
-          const deleted = !!m.deletedAt;
-          const isSticker =
-            m.kind === "STICKER" || (!!m.stickerUrl && !m.body);
-          if (m.kind === "CALL_EVENT") {
-            return (
-              <div key={m.id} className="call-event">
-                <Icon
-                  name={m.call?.kind === "VIDEO" ? "bold_video" : "bold_phone"}
-                  size={13}
-                />
-                <span>{callEventText(m)}</span>
-                <span className="call-event-time">
-                  {clockTime(m.createdAt)}
-                </span>
-              </div>
-            );
-          }
           return (
-            <div
+            <MessageBubble
               key={m.id}
-              className={`msg-row ${mine ? "out" : "in"} ${grouped ? "grouped" : ""}`}
-            >
-              <div
-                className={`bubble ${isSticker ? "sticker-only" : ""}`}
-                onContextMenu={(e) => {
-                  if (deleted) return;
-                  e.preventDefault();
-                  setMenu({ x: e.clientX, y: e.clientY, m });
-                }}
-              >
-                {showSender && (
-                  <div className="bubble-sender">
-                    {displayNameFor(m.senderId, conversation, me)}
-                  </div>
-                )}
-                {m.replyTo && (
-                  <div className="bubble-reply">
-                    {m.replyTo.deleted ? "Deleted message" : m.replyTo.preview}
-                  </div>
-                )}
-                {m.attachments.map((att) => (
-                  <AttachmentView key={att.id} att={att} onOpen={setViewer} />
-                ))}
-                {m.stickerUrl && (
-                  <img
-                    className={isSticker ? "bubble-sticker" : "bubble-img"}
-                    src={m.stickerUrl}
-                    alt="sticker"
-                  />
-                )}
-                {deleted ? (
-                  <div className="bubble-text" style={{ fontStyle: "italic", opacity: 0.7 }}>
-                    Message deleted
-                  </div>
-                ) : (
-                  m.body && <div className="bubble-text">{linkify(m.body)}</div>
-                )}
-                {!deleted &&
-                  m.body &&
-                  (() => {
-                    const emb = detectEmbed(m.body);
-                    return emb ? <LinkEmbed embed={emb} /> : null;
-                  })()}
-                {m.reactions && m.reactions.length > 0 && (
-                  <div className="bubble-reactions">
-                    {m.reactions.map((r) => (
-                      <button
-                        key={r.emoji}
-                        className={`reaction ${r.mine ? "mine" : ""}`}
-                        onClick={() => onReact?.(m.id, r.emoji)}
-                      >
-                        {r.emoji} {r.count}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                <div className="bubble-meta">
-                  <span>{clockTime(m.createdAt)}</span>
-                  {mine && <Tick status={m.status} />}
-                </div>
-              </div>
-            </div>
+              m={m}
+              mine={mine}
+              grouped={grouped}
+              senderName={
+                showSender
+                  ? displayNameFor(m.senderId, conversation, me)
+                  : undefined
+              }
+              onContextMenu={openMenu}
+              onReaction={reactTo}
+              onOpenImage={setViewer}
+            />
           );
         })}
         <div ref={bottomRef} />
@@ -564,67 +695,12 @@ export function ChatPane({
         </div>
       )}
 
-      <div className="composer">
-        {onSendFile && (
-          <>
-            <button
-              className="icon-btn composer-btn"
-              title="Attach a photo or file"
-              onClick={() => fileRef.current?.click()}
-            >
-              <Icon name="paperclip" size={21} />
-            </button>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*,video/*,audio/*,*/*"
-              hidden
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) onSendFile(f);
-                e.target.value = "";
-              }}
-            />
-          </>
-        )}
-        <div className="composer-input">
-          <textarea
-            value={draft}
-            placeholder="Write a message…"
-            rows={1}
-            onChange={(e) => handleDraft(e.target.value)}
-            onKeyDown={onKeyDown}
-            onBlur={stopTyping}
-          />
-          {onSendSticker && (
-            <>
-              <button
-                className="composer-emoji"
-                title="Stickers"
-                onClick={() => setShowStickers((v) => !v)}
-              >
-                <Icon name="smile" size={22} />
-              </button>
-              {showStickers && (
-                <Suspense fallback={null}>
-                  <StickerPicker
-                    onPick={(id) => onSendSticker(id)}
-                    onClose={() => setShowStickers(false)}
-                  />
-                </Suspense>
-              )}
-            </>
-          )}
-        </div>
-        <button
-          className="send-btn"
-          onClick={send}
-          disabled={draft.trim().length === 0}
-          title="Send (Enter)"
-        >
-          <Icon name="paperplane" size={20} />
-        </button>
-      </div>
+      <Composer
+        onSend={sendDraft}
+        onTypingChange={onTypingChange}
+        onSendSticker={onSendSticker}
+        onSendFile={onSendFile}
+      />
     </section>
   );
 }
