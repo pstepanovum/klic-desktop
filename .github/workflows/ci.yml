@@ -35,5 +35,8 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Unit tests
+        run: npm test
+
       - name: Build (tsc + vite)
         run: npm run build

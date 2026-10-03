@@ -19,6 +19,7 @@ import {
 } from "../util/format";
 import { Icon, type IconName } from "../icons/icon";
 import { externalLinkClick } from "../util/external";
+import { splitTrail } from "../util/link-text";
 
 // Popovers that only matter once opened load on demand.
 const StickerPicker = lazy(() =>
@@ -97,21 +98,6 @@ function LinkEmbed({ embed }: { embed: { kind: string; src: string } }) {
       title="embedded media"
     />
   );
-}
-
-// Split sentence punctuation off the end of a linkified URL. A closing paren is
-// kept when it balances one inside the URL (e.g. Wikipedia "Foo_(bar)").
-function splitTrail(p: string): [string, string] {
-  let end = p.length;
-  while (end > 0) {
-    const c = p[end - 1];
-    const head = p.slice(0, end);
-    const unbalanced =
-      c === ")" && head.split("(").length < head.split(")").length;
-    if (!".,!?;:'\"]".includes(c) && !unbalanced) break;
-    end--;
-  }
-  return [p.slice(0, end), p.slice(end)];
 }
 
 // Render message text with clickable links (opened in the system browser).
