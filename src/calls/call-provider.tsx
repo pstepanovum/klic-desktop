@@ -83,11 +83,42 @@ export interface CallContextValue {
   };
 }
 
-const CallContext = createContext<CallContextValue | null>(null);
-export const useCall = () => {
-  const ctx = useContext(CallContext);
-  if (!ctx) throw new Error("useCall must be used within CallProvider");
-  return ctx;
+type CallActions = Pick<
+  CallContextValue,
+  | "startCall"
+  | "accept"
+  | "decline"
+  | "hangup"
+  | "toggleMic"
+  | "toggleCam"
+  | "toggleScreen"
+  | "startScreenShare"
+  | "cancelScreenShare"
+  | "signals"
+>;
+type CallState = Omit<CallContextValue, keyof CallActions>;
+
+// State and actions live in separate contexts: actions are (nearly) stable, so
+// components that only start calls or route signals skip re-rendering on every
+// participant / active-speaker update.
+const CallStateContext = createContext<CallState | null>(null);
+const CallActionsContext = createContext<CallActions | null>(null);
+
+export const useCall = (): CallContextValue => {
+  const state = useContext(CallStateContext);
+  const actions = useContext(CallActionsContext);
+  const merged = useMemo(
+    () => (state && actions ? { ...state, ...actions } : null),
+    [state, actions],
+  );
+  if (!merged) throw new Error("useCall must be used within CallProvider");
+  return merged;
+};
+
+export const useCallActions = (): CallActions => {
+  const actions = useContext(CallActionsContext);
+  if (!actions) throw new Error("useCallActions must be used within CallProvider");
+  return actions;
 };
 
 export function CallProvider({
@@ -114,6 +145,7 @@ export function CallProvider({
   const connectedRef = useRef(false);
   const ringTimer = useRef<number | null>(null);
   const audioRef = useRef<HTMLDivElement>(null);
+  const unbindAudioRef = useRef<(() => void) | null>(null);
 
   const setPhaseBoth = (p: CallPhase) => {
     phaseRef.current = p;
@@ -147,6 +179,8 @@ export function CallProvider({
           pub.track?.detach().forEach((el) => el.remove()),
         ),
       );
+      unbindAudioRef.current?.();
+      unbindAudioRef.current = null;
       room.removeAllListeners();
       room.disconnect();
       roomRef.current = null;
@@ -165,20 +199,20 @@ export function CallProvider({
 
   const connectRoom = useCallback(
     async (livekitUrl: string, token: string, callId: string, kind: CallKind) => {
-      const [{ RoomEvent, Track }, { createCallRoom, ROOM_UPDATE_EVENTS }] =
-        await loadCallKit();
+      const [
+        { RoomEvent, Track },
+        { createCallRoom, ROOM_UPDATE_EVENTS, bindRemoteAudio },
+      ] = await loadCallKit();
       const room = createCallRoom();
       roomRef.current = room;
       ROOM_UPDATE_EVENTS.forEach((e) => room.on(e, rebuild));
       room.on(RoomEvent.Disconnected, () => teardown());
 
-      // Attach remote audio as it arrives (camera-off participants too).
-      room.on(RoomEvent.TrackSubscribed, (track) => {
-        if (track.kind === "audio" && audioRef.current) {
-          const el = track.attach();
-          audioRef.current.appendChild(el);
-        }
-      });
+      // Attach remote audio as it arrives (camera-off participants too) and
+      // drop each element again when its track is unsubscribed.
+      if (audioRef.current) {
+        unbindAudioRef.current = bindRemoteAudio(room, audioRef.current);
+      }
 
       // Keep the screen-share toggle in sync when the capture ends outside our
       // UI — e.g. the user hits the OS "Stop sharing" control or the source
@@ -410,34 +444,69 @@ export function CallProvider({
     [selfId, invite, teardown, markConnected],
   );
 
-  const value: CallContextValue = {
-    phase,
-    meta,
-    invite,
-    participants,
-    room: roomRef.current,
-    micOn,
-    camOn,
-    screenOn,
-    screenPickerOpen,
-    connected,
-    error,
-    startCall,
-    accept,
-    decline,
-    hangup,
-    toggleMic,
-    toggleCam,
-    toggleScreen,
-    startScreenShare,
-    cancelScreenShare,
-    signals,
-  };
+  const room = roomRef.current;
+  const state = useMemo<CallState>(
+    () => ({
+      phase,
+      meta,
+      invite,
+      participants,
+      room,
+      micOn,
+      camOn,
+      screenOn,
+      screenPickerOpen,
+      connected,
+      error,
+    }),
+    [
+      phase,
+      meta,
+      invite,
+      participants,
+      room,
+      micOn,
+      camOn,
+      screenOn,
+      screenPickerOpen,
+      connected,
+      error,
+    ],
+  );
+
+  const actions = useMemo<CallActions>(
+    () => ({
+      startCall,
+      accept,
+      decline,
+      hangup,
+      toggleMic,
+      toggleCam,
+      toggleScreen,
+      startScreenShare,
+      cancelScreenShare,
+      signals,
+    }),
+    [
+      startCall,
+      accept,
+      decline,
+      hangup,
+      toggleMic,
+      toggleCam,
+      toggleScreen,
+      startScreenShare,
+      cancelScreenShare,
+      signals,
+    ],
+  );
 
   return (
-    <CallContext.Provider value={value}>
-      {children}
-      <div ref={audioRef} style={{ display: "none" }} aria-hidden />
-    </CallContext.Provider>
+    <CallActionsContext.Provider value={actions}>
+      <CallStateContext.Provider value={state}>
+        {children}
+        <div ref={audioRef} style={{ display: "none" }} aria-hidden />
+      </CallStateContext.Provider>
+    </CallActionsContext.Provider>
   );
 }

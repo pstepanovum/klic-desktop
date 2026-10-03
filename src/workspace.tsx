@@ -9,7 +9,7 @@ import { ChatPane } from "./components/chat-pane";
 import { RecentCalls } from "./components/recent-calls";
 import { Icon } from "./icons/icon";
 import { Avatar } from "./components/avatar";
-import { useCall } from "./calls/call-provider";
+import { useCall, useCallActions } from "./calls/call-provider";
 import { IncomingCall } from "./calls/incoming-call";
 import { conversationTitle } from "./util/format";
 import { displayNameFor } from "./util/format";
@@ -27,6 +27,23 @@ const CallView = lazy(() =>
 );
 // Blank pane with the same flex footprint while a lazy tab chunk loads.
 const paneFallback = <div className="settings" />;
+
+// Ringing and in-call overlays. They subscribe to call state here so
+// participant / speaker updates don't re-render the whole workspace.
+function CallOverlays() {
+  const { phase } = useCall();
+  const showCall = phase === "active" || phase === "outgoing";
+  return (
+    <>
+      {phase === "incoming" && <IncomingCall />}
+      {showCall && (
+        <Suspense fallback={null}>
+          <CallView />
+        </Suspense>
+      )}
+    </>
+  );
+}
 
 const PAGE_SIZE = 50;
 type Tab = "chats" | "friends" | "calls" | "settings";
@@ -55,7 +72,8 @@ export function Workspace({
   onUpdateSelf,
   onLogout,
 }: Props) {
-  const call = useCall();
+  // Actions only: the call overlays below read live call state themselves.
+  const call = useCallActions();
   const [tab, setTab] = useState<Tab>("chats");
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loadingConvs, setLoadingConvs] = useState(false);
@@ -427,8 +445,6 @@ export function Workspace({
     );
   }
 
-  const showCall = call.phase === "active" || call.phase === "outgoing";
-
   return (
     <div className="app">
       <nav className="nav-rail">
@@ -559,12 +575,7 @@ export function Workspace({
         </Suspense>
       )}
 
-      {call.phase === "incoming" && <IncomingCall />}
-      {showCall && (
-        <Suspense fallback={null}>
-          <CallView />
-        </Suspense>
-      )}
+      <CallOverlays />
       {toast && <div className="toast">{toast}</div>}
     </div>
   );
