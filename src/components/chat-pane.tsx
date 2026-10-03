@@ -10,6 +10,7 @@ import {
 } from "../util/format";
 import { Icon, type IconName } from "../icons/icon";
 import { StickerPicker } from "./sticker-picker";
+import { externalLinkClick } from "../util/external";
 
 interface Props {
   me: SelfUser;
@@ -74,23 +75,49 @@ function LinkEmbed({ embed }: { embed: { kind: string; src: string } }) {
       src={embed.src}
       loading="lazy"
       allow="encrypted-media; clipboard-write; picture-in-picture"
+      sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"
+      // YouTube's player refuses to play without a referrer, so keep the origin.
+      referrerPolicy="strict-origin-when-cross-origin"
       title="embedded media"
     />
   );
 }
 
-// Render message text with clickable links.
+// Split sentence punctuation off the end of a linkified URL. A closing paren is
+// kept when it balances one inside the URL (e.g. Wikipedia "Foo_(bar)").
+function splitTrail(p: string): [string, string] {
+  let end = p.length;
+  while (end > 0) {
+    const c = p[end - 1];
+    const head = p.slice(0, end);
+    const unbalanced =
+      c === ")" && head.split("(").length < head.split(")").length;
+    if (!".,!?;:'\"]".includes(c) && !unbalanced) break;
+    end--;
+  }
+  return [p.slice(0, end), p.slice(end)];
+}
+
+// Render message text with clickable links (opened in the system browser).
 function linkify(text: string) {
   const parts = text.split(/(https?:\/\/[^\s]+)/g);
-  return parts.map((p, i) =>
-    /^https?:\/\//.test(p) ? (
-      <a key={i} href={p} target="_blank" rel="noreferrer" className="msg-link">
-        {p}
-      </a>
-    ) : (
-      <span key={i}>{p}</span>
-    ),
-  );
+  return parts.flatMap((p, i) => {
+    if (!/^https?:\/\//.test(p)) return [<span key={i}>{p}</span>];
+    const [url, trail] = splitTrail(p);
+    return [
+      <a
+        key={i}
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="msg-link"
+        onClick={(e) => externalLinkClick(e, url)}
+      >
+        {url}
+      </a>,
+      trail && <span key={`${i}t`}>{trail}</span>,
+    ];
+  });
 }
 
 function Tick({ status }: { status?: Message["status"] }) {
@@ -159,7 +186,13 @@ function AttachmentView({
           type="application/pdf"
         />
       )}
-      <a className="bubble-file" href={att.url} target="_blank" rel="noreferrer">
+      <a
+        className="bubble-file"
+        href={att.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={(e) => externalLinkClick(e, att.url)}
+      >
         <span className="file-ic">
           <Icon name={icon} size={22} />
         </span>

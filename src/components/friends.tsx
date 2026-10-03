@@ -9,6 +9,7 @@ import type {
 import { Avatar } from "./avatar";
 import { Icon } from "../icons/icon";
 import { humanSize } from "../util/format";
+import { externalLinkClick } from "../util/external";
 
 export function Friends({ conversations }: { conversations: Conversation[] }) {
   const [friends, setFriends] = useState<PublicUser[] | null>(null);
@@ -141,7 +142,8 @@ export function Friends({ conversations }: { conversations: Conversation[] }) {
                     className="chip"
                     href={l}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
+                    onClick={(e) => externalLinkClick(e, l)}
                   >
                     <Icon name="link" size={13} /> {l}
                   </a>
@@ -186,7 +188,8 @@ export function Friends({ conversations }: { conversations: Conversation[] }) {
                       className="media-cell"
                       href={a.url}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
+                      onClick={(e) => externalLinkClick(e, a.url)}
                     >
                       <img src={a.url} alt="" loading="lazy" />
                     </a>
@@ -196,7 +199,8 @@ export function Friends({ conversations }: { conversations: Conversation[] }) {
                       className="media-cell file"
                       href={a.url}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
+                      onClick={(e) => externalLinkClick(e, a.url)}
                       title={a.fileName ?? a.kind}
                     >
                       <Icon
