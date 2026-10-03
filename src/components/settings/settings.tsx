@@ -9,13 +9,11 @@ import { Notifications } from "./notifications";
 import { Passkeys } from "./passkeys";
 import { SavedMessages } from "./saved-messages";
 import { AboutUpdates } from "./about-updates";
-import {
-  ChatThemePage,
-  DataStorage,
-  Language,
-  EncryptionInfo,
-  ReportProblem,
-} from "./misc-pages";
+import { ChatThemePage } from "./pages/chat-theme";
+import { DataStorage } from "./pages/data-storage";
+import { Language } from "./pages/language";
+import { EncryptionInfo } from "./pages/encryption-info";
+import { ReportProblem } from "./pages/report-problem";
 
 // The qrcode encoder is only needed on this one page.
 const QrCode = lazy(() =>
