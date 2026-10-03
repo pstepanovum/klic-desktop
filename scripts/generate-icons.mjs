@@ -2,15 +2,38 @@
 // React icon module. Fill/stroke colors are dropped in favor of `currentColor`
 // so every icon is theme-colorable. Re-run with:
 //   node scripts/generate-icons.mjs <android-drawable-dir>
-import { readdirSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
+// Only icons referenced as string literals under src/ are emitted, since <Icon>
+// looks names up dynamically and the bundler can't tree-shake the table. Pass
+// --all to emit the full set, or --prune to re-filter the existing output
+// without the Android sources (e.g. after removing an icon usage).
+import { readdirSync, readFileSync, writeFileSync, mkdirSync, statSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const args = process.argv.slice(2);
+const ALL = args.includes("--all");
+const PRUNE = args.includes("--prune");
 const SRC =
-  process.argv[2] ||
-  "/Users/pavelstepanov/Projects/Klic/klic-mobile-android/app/src/main/res/drawable";
+  args.find((a) => !a.startsWith("--")) ||
+  join(__dirname, "..", "..", "klic-mobile-android", "app", "src", "main", "res", "drawable");
 const OUT = join(__dirname, "..", "src", "icons", "icons.generated.ts");
+
+// Every quoted string in src/ (excluding the generated table itself).
+function usedStrings() {
+  const out = new Set();
+  const walk = (dir) => {
+    for (const f of readdirSync(dir)) {
+      const p = join(dir, f);
+      if (statSync(p).isDirectory()) walk(p);
+      else if (/\.(ts|tsx)$/.test(f) && p !== OUT) {
+        for (const m of readFileSync(p, "utf8").matchAll(/["'`]([a-z0-9_]+)["'`]/g)) out.add(m[1]);
+      }
+    }
+  };
+  walk(join(__dirname, "..", "src"));
+  return out;
+}
 
 const attr = (block, name) => {
   const m = block.match(new RegExp(`android:${name}="([^"]*)"`, "s"));
@@ -60,6 +83,22 @@ const PREFIXES = [
   ["ic_line_", "line_"],
 ];
 
+function loadEntries() {
+  if (PRUNE) {
+    // Re-read the previously generated table: `  "name": { vw: N, vh: N, paths: [ ... ] }`.
+    const text = readFileSync(OUT, "utf8");
+    const re = /^  "([^"]+)": \{ vw: ([\d.]+), vh: ([\d.]+), paths: \[\n([\s\S]*?)\n  \] \}/gm;
+    return [...text.matchAll(re)].map((m) => ({
+      name: m[1],
+      vw: m[2],
+      vh: m[3],
+      paths: m[4].split(",\n").map((l) => JSON.parse(l.trim())),
+    }));
+  }
+  return fromAndroid();
+}
+
+function fromAndroid() {
 const files = readdirSync(SRC)
   .filter(
     (f) =>
@@ -79,6 +118,12 @@ for (const file of files) {
   const { vw, vh, paths } = convert(readFileSync(join(SRC, file), "utf8"));
   entries.push({ name, vw, vh, paths });
 }
+return entries;
+}
+
+const loaded = loadEntries();
+const used = ALL ? null : usedStrings();
+const entries = used ? loaded.filter((e) => used.has(e.name)) : loaded;
 
 const header = `// AUTO-GENERATED from Android VectorDrawable ic_klic_*.xml. Do not edit by hand.
 // Regenerate: node scripts/generate-icons.mjs
@@ -113,4 +158,4 @@ const body = entries
 
 mkdirSync(dirname(OUT), { recursive: true });
 writeFileSync(OUT, header + body + "\n};\n");
-console.log(`Wrote ${entries.length} icons to ${OUT}`);
+console.log(`Wrote ${entries.length} of ${loaded.length} icons to ${OUT}`);

@@ -46,11 +46,6 @@ export function participantList(room: Room): Participant[] {
   return [room.localParticipant, ...Array.from(room.remoteParticipants.values())];
 }
 
-export function cameraTrack(p: Participant) {
-  const pub = p.getTrackPublication(Track.Source.Camera);
-  return pub?.videoTrack ?? null;
-}
-
 export function isCameraEnabled(p: Participant): boolean {
   const pub = p.getTrackPublication(Track.Source.Camera);
   return !!pub && !pub.isMuted && !!pub.track;

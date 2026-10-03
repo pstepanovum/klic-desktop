@@ -99,8 +99,3 @@ export function Icon({ name, size = 22, className, title }: Props) {
     </svg>
   );
 }
-
-// True when an icon with this name exists in the ported set.
-export function hasIcon(name: string): name is IconName {
-  return name in ICONS;
-}

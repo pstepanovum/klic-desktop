@@ -205,16 +205,16 @@ export function EncryptionInfo() {
 }
 
 // ---- Report a problem ----
+// Values must match the server's ReportCategory enum.
 const CATEGORIES = [
-  "BUG",
-  "ABUSE",
-  "SPAM",
-  "HARASSMENT",
-  "IMPERSONATION",
-  "OTHER",
+  { value: "OTHER", label: "Bug or other problem" },
+  { value: "SPAM", label: "Spam" },
+  { value: "HARASSMENT", label: "Harassment" },
+  { value: "IMPERSONATION", label: "Impersonation" },
+  { value: "SCAM_FRAUD", label: "Scam or fraud" },
 ];
 export function ReportProblem() {
-  const [category, setCategory] = useState("BUG");
+  const [category, setCategory] = useState("OTHER");
   const [details, setDetails] = useState("");
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<{ ok: boolean; msg: string } | null>(null);
@@ -249,8 +249,8 @@ export function ReportProblem() {
           onChange={(e) => setCategory(e.target.value)}
         >
           {CATEGORIES.map((c) => (
-            <option key={c} value={c}>
-              {c.charAt(0) + c.slice(1).toLowerCase()}
+            <option key={c.value} value={c.value}>
+              {c.label}
             </option>
           ))}
         </select>

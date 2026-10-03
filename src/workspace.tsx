@@ -230,7 +230,9 @@ export function Workspace({
   function selectConversation(id: string) {
     setActiveId(id);
     setTab("chats");
-    if (!messages[id]) loadInitial(id);
+    // Key off history, not messages: a realtime message for a never-opened chat
+    // seeds messages[id] with that one message and would otherwise skip the fetch.
+    if (!history[id]) loadInitial(id);
     realtime.markRead(id);
     setConversations((prev) =>
       prev.map((c) => (c.id === id ? { ...c, unreadCount: 0 } : c)),

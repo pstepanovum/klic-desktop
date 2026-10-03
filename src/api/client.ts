@@ -353,10 +353,10 @@ export const api = {
       { method: "DELETE" },
     );
   },
-  pinMessage(conversationId: string, messageId: string) {
+  pinMessage(conversationId: string, messageId: string, notify = false) {
     return request<void>(
       `/conversations/${conversationId}/messages/${messageId}/pin`,
-      { method: "POST" },
+      { method: "POST", body: { notify } },
     );
   },
 };

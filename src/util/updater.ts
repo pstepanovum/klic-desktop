@@ -14,14 +14,6 @@ export interface UpdateInfo {
   update: Update;
 }
 
-export type UpdateState =
-  | { kind: "idle" }
-  | { kind: "checking" }
-  | { kind: "available"; info: UpdateInfo }
-  | { kind: "downloading"; version: string; percent: number }
-  | { kind: "ready" }
-  | { kind: "uptodate" }
-  | { kind: "error"; message: string };
 
 // Returns the available update, or null when up to date / not in Tauri.
 export async function checkForUpdate(): Promise<UpdateInfo | null> {

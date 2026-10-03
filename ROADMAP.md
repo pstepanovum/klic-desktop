@@ -7,7 +7,7 @@
 - **v0.6.2** — voice/video/**group** calls (livekit-client) with active-speaker
   grid + recent-calls history; the full settings surface; **Friends** (list,
   requests, profile detail); **stickers**; message **reactions / reply / copy /
-  star** context menu; auto-linked URLs; the Klic icon set (352 glyphs);
+  star** context menu; auto-linked URLs; the Klic icon set (generated from Android, pruned to the glyphs in use);
   fixed-size auth window + forgot-password screen; custom titlebar; native macOS
   menu (About / Pavel Stepanov); a squircle app icon; TikTok Sans + Bangers;
   grayscale stroke-free UI with fully rounded controls.

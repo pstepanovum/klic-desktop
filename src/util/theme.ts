@@ -24,9 +24,3 @@ export function nextTheme(theme: Theme): Theme {
   if (theme === "dark") return "system";
   return "light";
 }
-
-export function themeIcon(theme: Theme): string {
-  if (theme === "light") return "☀"; // sun
-  if (theme === "dark") return "☽"; // moon
-  return "◐"; // half circle = system
-}
