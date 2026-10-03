@@ -71,6 +71,9 @@ export function Workspace({
   const meIdRef = useRef<string>(self.id);
   const typingTimers = useRef<Record<string, number>>({});
   const signalsRef = useRef(call.signals);
+  // Latest messages for loadOlder, so it isn't recreated on every message.
+  const messagesRef = useRef(messages);
+  messagesRef.current = messages;
   activeIdRef.current = activeId;
   meIdRef.current = self.id;
   signalsRef.current = call.signals;
@@ -102,6 +105,24 @@ export function Workspace({
     });
   }, []);
 
+  // Add/remove a typer, dropping a conversation's entry once nobody is typing.
+  const setTypingUser = useCallback(
+    (convId: string, userId: string, isTyping: boolean) => {
+      setTyping((prev) => {
+        const cur = prev[convId];
+        if (isTyping ? cur?.has(userId) : !cur?.has(userId)) return prev;
+        const set = new Set(cur ?? []);
+        if (isTyping) set.add(userId);
+        else set.delete(userId);
+        if (set.size > 0) return { ...prev, [convId]: set };
+        const next = { ...prev };
+        delete next[convId];
+        return next;
+      });
+    },
+    [],
+  );
+
   // ---- Realtime (chat + call signals) ----
   useEffect(() => {
     realtime.connect(session.accessToken, {
@@ -132,36 +153,35 @@ export function Workspace({
       onTyping: (e) => {
         if (e.userId === meIdRef.current) return;
         const key = `${e.conversationId}:${e.userId}`;
-        setTyping((prev) => {
-          const set = new Set(prev[e.conversationId] ?? []);
-          if (e.isTyping) set.add(e.userId);
-          else set.delete(e.userId);
-          return { ...prev, [e.conversationId]: set };
-        });
+        setTypingUser(e.conversationId, e.userId, e.isTyping);
         window.clearTimeout(typingTimers.current[key]);
+        delete typingTimers.current[key];
         if (e.isTyping) {
           typingTimers.current[key] = window.setTimeout(() => {
-            setTyping((prev) => {
-              const set = new Set(prev[e.conversationId] ?? []);
-              set.delete(e.userId);
-              return { ...prev, [e.conversationId]: set };
-            });
+            delete typingTimers.current[key];
+            setTypingUser(e.conversationId, e.userId, false);
           }, 5000);
         }
       },
       onReaction: (e) => {
         setMessages((prev) => {
-          for (const [cid, list] of Object.entries(prev)) {
-            if (list.some((m) => m.id === e.messageId)) {
-              return {
-                ...prev,
-                [cid]: list.map((m) =>
-                  m.id === e.messageId ? { ...m, reactions: e.reactions } : m,
-                ),
-              };
-            }
+          // The server names the conversation; scan only for older payloads.
+          const cid =
+            e.conversationId && prev[e.conversationId]
+              ? e.conversationId
+              : Object.keys(prev).find((id) =>
+                  prev[id].some((m) => m.id === e.messageId),
+                );
+          const list = cid ? prev[cid] : undefined;
+          if (!cid || !list || !list.some((m) => m.id === e.messageId)) {
+            return prev;
           }
-          return prev;
+          return {
+            ...prev,
+            [cid]: list.map((m) =>
+              m.id === e.messageId ? { ...m, reactions: e.reactions } : m,
+            ),
+          };
         });
       },
       // Call signals delegate to the CallProvider (via a ref for freshness).
@@ -174,7 +194,15 @@ export function Workspace({
       onCallParticipantLeft: (e) => signalsRef.current.onParticipantLeft(e),
     });
     return () => realtime.disconnect();
-  }, [session.accessToken, appendMessage, bumpConversation]);
+  }, [session.accessToken, appendMessage, bumpConversation, setTypingUser]);
+
+  // Drop pending typing-expiry timers when the workspace goes away.
+  useEffect(() => {
+    const timers = typingTimers.current;
+    return () => {
+      Object.values(timers).forEach((t) => window.clearTimeout(t));
+    };
+  }, []);
 
   // ---- Load conversations ----
   useEffect(() => {
@@ -214,7 +242,7 @@ export function Workspace({
   const loadOlder = useCallback(async () => {
     const convId = activeIdRef.current;
     if (!convId) return;
-    const list = messages[convId] ?? [];
+    const list = messagesRef.current[convId] ?? [];
     const oldest = list[0];
     if (!oldest) return;
     setHistory((h) => ({
@@ -235,7 +263,7 @@ export function Workspace({
     } catch {
       setHistory((h) => ({ ...h, [convId]: { loading: false, hasMore: false } }));
     }
-  }, [messages]);
+  }, []);
 
   function selectConversation(id: string) {
     setActiveId(id);
